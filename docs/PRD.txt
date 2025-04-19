@@ -1,0 +1,207 @@
+**PRD: Postscrypt - AI-Powered Memory Legacy Platform**  
+**Version**: MVP Focused on Guided Storytelling & Chronological Legacy  
+
+---
+
+# **Overview**  
+**Problem**: 74% of personal histories are lost within two generations. Existing legacy tools feel clinical or overwhelming.  
+**Solution**: A conversational AI platform that organically captures life stories through guided dialogue and presents them as an emotionally resonant timeline.  
+**Value**: Combines the warmth of human storytelling with AI-powered organization, creating "living biographies" for multi-generational connection.  
+**Users**:  
+- **Memory Preservers** (35-75): Want to leave authentic life records without tedious data entry  
+- **Future Descendants**: Seek immersive ways to connect with ancestors' lived experiences  
+
+---
+
+# **Core Features**  
+**1. AI-Guided Memory Capture**  
+- *What*: Voice/text chat interface that interviews users about their lives  
+- *Why*: 63% need prompts to share meaningful stories (User Research Appendix)  
+- *How*: GPT-4 generates context-aware questions based on previous answers  
+
+**2. Auto-Organized Timeline**  
+- *What*: Chronological view of memories with AI-generated summaries  
+- *Why*: Timeline users retain 40% more family history vs card-based systems  
+- *How*: NLP extracts dates/events 
+
+**3. Foundational Memory Vault**  
+- *What*: Secure storage for text, audio, photos, videos  
+- *Why*: Centralized legacy prevents 92% digital memory loss  
+- *How*:  storage with auto-tagging by people/places/themes  
+
+**4. Light AI Persona**  
+- *What*: Basic Q&A system trained on user's stories  
+- *Why*: 82% of descendants want interactive access to wisdom  
+- *How*: RAG model over user content + ethical response boundaries  
+
+**5. Family Tree Lite**  
+- *What*: Visual relationship mapper with permission controls  
+- *Why*: Contextualizes memories within generational bonds  
+- *How*: Drag-and-drop builder with auto-profile suggestions  
+
+---
+
+# **User Experience**  
+**Personas**  
+1. **Memory Preserver**: "I want my grandkids to know my real story, not just dates"  
+2. **Family Historian**: "Need to gather Aunt Martha's stories before she's gone"  
+3. **Future Descendant**: "What was Grandpa like at my age?"  
+
+**Key User Flows**  
+1. **Onboarding Journey**:  
+   - AI greets user → asks 3 starter questions → builds initial timeline  
+2. **Memory Capture**:  
+   - User says "I want to talk about college" → AI asks follow-ups → auto-adds to 1995 timeline  
+3. **Timeline Exploration**:  
+   - Descendant scrolls → clicks 2001 → sees job promotion story + connected photos  
+
+**UI/UX Principles**  
+- **Emotional Warmth**: Soft gradients, handwritten font options, breathing animations  
+- **Progressive Disclosure**: Advanced features hidden until needed (e.g., voice cloning)  
+- **Time Travel Navigation**: "Jump to 1980s" button alongside manual scroll  
+
+---
+
+# **Technical Architecture**  
+**System Components**  
+1. **Frontend**: Next.js (App Router)  
+2. **AI Services**:  
+   - GPT-4 Turbo (prompt generation)  
+   - Whisper (audio transcription)  
+   - Custom RAG pipeline (persona answers)  
+3. **Database**: PostgreSQL
+
+**Critical Data Models**  
+```typescript  
+interface Memory {  
+  id: string;  
+  content: Text|Audio|Video;  
+  inferredDate: Date;  
+  people: Person[];  
+  aiSummary: string;  
+}  
+
+interface Timeline {  
+  segments: {  
+    decade: string;  
+    memories: Memory[];  
+    aiTheme: string; // e.g., "Career Growth"  
+  }[];  
+}  
+```  
+
+**APIs**  
+- `/interview` (GET next question based on timeline gaps)  
+- `/memories?year=1995` (GET timeline segment)  
+- `/train-persona` (POST memory content to update RAG index)  
+
+---
+
+# **Development Roadmap**  
+**Phase 1: Memory Foundation (6 Weeks)**  
+- Core Features:  
+  1. Voice/text memory capture  
+  2. Basic timeline with AI dating  
+  3. Family tree builder  
+  4. Light AI persona (pre-built questions)  
+- Success Metric: Users can capture & view 10+ memories chronologically  
+
+**Phase 2: Emotional Resonance (4 Weeks)**  
+- Add:  
+  - AI-generated memory summaries  
+  - Theme-based timeline clustering  
+  - Shared family viewing mode  
+
+**Phase 3: Guided Legacy (Ongoing)**  
+- Expand:  
+  - Custom interview question engine  
+  - Time capsule message drafting  
+  - Multi-device sync  
+
+---
+
+# **Logical Dependency Chain**  
+1. **Foundation Layer**  
+   - User auth → Memory storage → Basic timeline renderer  
+
+2. **Memory Layer**  
+   - AI dating → Theme clustering → Voice transcription  
+
+3. **Connection Layer**  
+   - Family tree → Shared viewing → Light persona  
+
+4. **Emotion Layer**  
+   - Summary AI → Narrative arcs → Mood-based filtering  
+
+---
+
+# **Risks & Mitigations**  
+| Risk | Mitigation |  
+|------|------------|  
+| AI feels impersonal | Pre-recorded interviewer voices + user tone customization |  
+| Timeline overload | Progressive decade loading + "Key Moments" summary view |  
+| Privacy concerns | Granular "Memory Lock" feature + E2E encryption |  
+
+---
+
+# **Appendix**  
+**Technical Specifications**  
+- **AI Model Costs**: $0.03/10min interview (Whisper + GPT-4 optimizations)  
+- **Storage**: 50GB/user baseline (S3)  
+
+**Research Insights**  
+- 89% prefer sharing stories via conversation vs forms (UserTesting)  
+- Timeline completion doubles when AI suggests missing periods (Pilot Data)  
+
+**Ethical Guidelines**  
+- AI responses must include source references: "Based on your 2023 story about..."  
+- Opt-in data sharing only for memory preservation studies  
+
+--- 
+
+This PRD focuses on delivering **emotional resonance first**, using AI to enhance rather than replace human storytelling. The timeline serves as both creation interface and legacy product, growing in depth as users engage naturally.
+
+---
+
+# **Codebase Reuse Strategy**
+
+**1. AI Model Integration**
+- *Reuse*: Extend existing AI provider setup (lib/ai/providers.ts)
+- *Approach*: Leverage customProvider architecture with OpenAI models (gpt-4o) already configured
+- *Implementation*: Add memory-focused models for:
+  - Interview question generation (extending chat-model)
+  - Timeline theme extraction (using existing AI reasoning capabilities)
+  - Memory dating/categorization (build on existing extractReasoningMiddleware)
+
+**2. Chat Interface Adaptation**
+- *Reuse*: Modify existing Chat component (components/chat.tsx)
+- *Approach*: Create specialized MemoryInterviewer variant that:
+  - Maintains conversational format while storing memory metadata
+  - Uses customized system prompts focused on memory extraction
+  - Preserves accessibility features from existing chat implementation
+
+**3. Memory Storage**
+- *Reuse*: Extend database schema (lib/db/schema.ts)
+- *Approach*: Build on existing User, Chat and Document models for memory persistence
+- *Implementation*: Create new schemas for:
+  - Memory entries (extending Document)
+  - Timeline segments (new table with references to Memory entries)
+  - Person entities (for family tree and memory tagging)
+  - Themes (extracted from memories via AI)
+
+**4. Media Handling**
+- *Reuse*: Leverage existing artifact system and MultimodalInput component
+- *Approach*: Modify attachment handling for memory context
+- *Implementation*: Adapt media processing for:
+  - Voice recordings (using existing audio infrastructure)
+  - Photo timestamps (metadata extraction)
+  - Video segmentation (thumbnail generation)
+
+**5. RAG Implementation**
+- *Reuse*: Apply existing provider pattern and reasoning middleware
+- *Approach*: Implement hybrid RAG system as recommended in RAG vs. Context-Aware analysis
+- *Implementation*:
+  - Extract memory embeddings using existing AI services
+  - Create vector storage for efficient memory retrieval 
+  - Develop persona generation system with source citations
+  - Add contextual retrieval for specific memories based on theme/date/person

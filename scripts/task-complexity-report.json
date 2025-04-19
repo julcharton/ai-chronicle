@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generatedAt": "2025-04-19T23:17:28.421Z",
+    "tasksAnalyzed": 10,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Project Foundation with Next.js",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the Next.js project setup into specific subtasks covering: 1) Next.js App Router initialization, 2) PostgreSQL/Drizzle integration, 3) OpenAI API configuration, 4) Authentication flow implementation, and 5) Project structure organization. For each subtask, include specific files to create and dependencies to install.",
+      "reasoning": "This task involves multiple technologies (Next.js, PostgreSQL, Prisma, OpenAI) and requires setting up the foundation for the entire application. The complexity comes from integrating these different systems and ensuring they work together properly."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Implement Core Data Models",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the core data model implementation into subtasks covering: 1) TypeScript interface definitions for Memory, Timeline, Person models, 2) Drizzle schema creation with proper relationships, 3) Database migration setup, 4) CRUD operations implementation, and 5) Relationship validation and testing. Include specific field definitions and relationship types.",
+      "reasoning": "Creating the data models requires careful planning of relationships between entities and implementing proper CRUD operations. The complexity is moderate as it involves database schema design, migrations, and TypeScript interfaces."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Develop AI-Guided Memory Capture Interface",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the AI-guided memory capture interface into subtasks covering: 1) Specialized MemoryInterviewer component creation, 2) GPT-4 system prompt engineering for contextual questions, 3) Voice input integration with Whisper, 4) UI implementation with specified design elements, 5) Memory storage logic, and 6) API endpoint configuration for interview progression. Include prompt templates and component structure details.",
+      "reasoning": "This task combines UI development with complex AI integration. It requires sophisticated prompt engineering, voice transcription, and a responsive UI that can adapt to user responses. The conversational nature adds significant complexity."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Build Auto-Organized Timeline View",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the auto-organized timeline view into subtasks covering: 1) Timeline component with decade-based segments, 2) NLP date/event extraction implementation, 3) AI summary generation for memories, 4) Progressive decade loading mechanism, 5) API endpoint for year-based memory retrieval, and 6) Time-travel navigation UI. Include specific NLP techniques and rendering approaches.",
+      "reasoning": "This task involves complex UI rendering, NLP for date extraction, and AI for generating summaries. The progressive loading and decade-based organization add technical challenges, making this a high-complexity task."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Memory Vault Storage",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the memory vault storage implementation into subtasks covering: 1) S3 integration for 50GB/user storage, 2) Media handling for different file types, 3) AI auto-tagging system, 4) Media processing for voice/photo/video, 5) Privacy controls with Memory Lock feature, 6) E2E encryption implementation, and 7) Storage quota management. Include security considerations and media processing techniques.",
+      "reasoning": "This task has high complexity due to the variety of media types, security requirements (E2E encryption), and AI-based auto-tagging. Handling different media formats and implementing proper security measures requires significant technical expertise."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Develop Light AI Persona with RAG",
+      "complexityScore": 9,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the RAG-based AI persona development into subtasks covering: 1) Vector embedding creation for memory content, 2) RAG implementation using existing provider pattern, 3) API endpoint for persona training, 4) Response generation with ethical boundaries, 5) Source citation mechanism, and 6) Contextual retrieval based on theme/date/person. Include vector database selection and embedding strategy details.",
+      "reasoning": "Implementing a RAG system is highly complex, requiring vector embeddings, sophisticated retrieval mechanisms, and careful prompt engineering. The ethical boundaries and contextual retrieval add additional layers of complexity."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Build Family Tree Lite Feature",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the family tree feature into subtasks covering: 1) Drag-and-drop family tree builder UI, 2) Person entity management with profile suggestions, 3) Permission control system for shared viewing, 4) Relationship mapping implementation, and 5) Memory-to-family member connection mechanism. Include UI component structure and relationship data model details.",
+      "reasoning": "This task combines UI challenges (drag-and-drop interface) with data modeling for family relationships. The permission controls add complexity, though it builds on existing data models which reduces the overall complexity somewhat."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement Onboarding Journey",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the onboarding journey implementation into subtasks covering: 1) AI greeting and starter question flow, 2) Initial timeline building logic, 3) Progressive feature disclosure mechanism, 4) UI design with warm elements and animations, and 5) Onboarding completion tracking. Include specific onboarding steps and UI state transitions.",
+      "reasoning": "The onboarding journey is moderately complex, requiring thoughtful UX design and integration with the AI interview system. The initial timeline building adds some complexity, but it leverages existing components which reduces the overall difficulty."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Develop Memory Capture User Flow",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the memory capture user flow into subtasks covering: 1) Topic-specific conversation initiation UI, 2) AI follow-up question generation system, 3) Automatic timeline placement with date extraction, 4) Media attachment capabilities, and 5) Auto-saving mechanism with UI feedback. Include prompt engineering details and state management approach.",
+      "reasoning": "This task combines UI development with AI integration for generating contextual questions. The automatic timeline placement and media attachment features add complexity, though it builds on existing components from previous tasks."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Timeline Exploration for Descendants",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the timeline exploration for descendants into subtasks covering: 1) Descendant view of timeline, 2) Memory detail view with media integration, 3) AI-generated summaries and narrative arcs, 4) Theme-based timeline clustering, 5) Shared family viewing with permissions, and 6) 'Key Moments' summary view implementation. Include UI mockups and permission model details.",
+      "reasoning": "This task involves sophisticated UI development for timeline exploration, complex AI-generated narrative arcs, and permission-based sharing. The theme-based clustering and 'Key Moments' feature add significant complexity to prevent information overload."
+    }
+  ]
+}
