@@ -9,15 +9,108 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  jsonb,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
+
+// Define enums
+export const visibilityEnum = pgEnum('visibility', [
+  'public',
+  'private',
+  'family',
+]);
+
+export const mediaTypeEnum = pgEnum('media_type', ['image', 'audio', 'video']);
+
+export const relationshipTypeEnum = pgEnum('relationship_type', [
+  'parent',
+  'child',
+  'spouse',
+  'sibling',
+  'grandparent',
+  'grandchild',
+  'aunt_uncle',
+  'niece_nephew',
+  'cousin',
+  'other',
+]);
+
+export const permissionTypeEnum = pgEnum('permission_type', [
+  'view',
+  'edit',
+  'delete',
+  'manage',
+]);
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
+  isAdmin: boolean('is_admin').default(false).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export type User = InferSelectModel<typeof user>;
+
+export const memory = pgTable('Memory', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  occurredAt: timestamp('occurred_at').notNull(),
+  visibility: visibilityEnum('visibility').notNull().default('private'),
+  source: text('source'),
+  blocks: jsonb('blocks').notNull(), // Editor.js structured content
+  tags: jsonb('tags').notNull().$type<string[]>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type Memory = InferSelectModel<typeof memory>;
+
+export const memoryPermission = pgTable('MemoryPermission', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  memoryId: uuid('memory_id')
+    .notNull()
+    .references(() => memory.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  permissionType: permissionTypeEnum('permission_type').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type MemoryPermission = InferSelectModel<typeof memoryPermission>;
+
+export const media = pgTable('Media', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  memoryId: uuid('memory_id')
+    .notNull()
+    .references(() => memory.id, { onDelete: 'cascade' }),
+  fileUrl: text('file_url').notNull(),
+  type: mediaTypeEnum('type').notNull(),
+  caption: text('caption'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Media = InferSelectModel<typeof media>;
+
+export const familyLink = pgTable('FamilyLink', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  fromUserId: uuid('from_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  toUserId: uuid('to_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  relationshipType: relationshipTypeEnum('relationship_type').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type FamilyLink = InferSelectModel<typeof familyLink>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
