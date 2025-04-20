@@ -53,6 +53,13 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
+// Add this type definition for the Memory blocks
+export type MemoryBlock =
+  | { type: 'paragraph'; data: { text: string } }
+  | { type: 'image'; data: { url: string; caption?: string } }
+  | { type: 'quote'; data: { text: string; attribution?: string } };
+
+// Update the memory table definition
 export const memory = pgTable('Memory', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
@@ -61,9 +68,10 @@ export const memory = pgTable('Memory', {
   title: text('title').notNull(),
   occurredAt: timestamp('occurred_at').notNull(),
   visibility: visibilityEnum('visibility').notNull().default('private'),
-  source: text('source'),
-  blocks: jsonb('blocks').notNull(), // Editor.js structured content
-  tags: jsonb('tags').notNull().$type<string[]>(),
+  blocks: jsonb('blocks').notNull().$type<MemoryBlock[]>(), // Custom block-based content
+  draft: boolean('draft').default(false).notNull(), // New field
+  summary: text('summary'), // New field
+  tags: jsonb('tags').$type<string[]>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

@@ -28,7 +28,7 @@
       "taskTitle": "Develop AI-Guided Memory Capture Interface",
       "complexityScore": 8,
       "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the AI-guided memory capture interface into subtasks covering: 1) Specialized MemoryInterviewer component creation, 2) GPT-4 system prompt engineering for contextual questions, 3) Voice input integration with Whisper, 4) UI implementation with specified design elements, 5) Memory storage logic, and 6) API endpoint configuration for interview progression. Include prompt templates and component structure details.",
+      "expansionPrompt": "Break down the existing AI-guided memory capture interface into subtasks covering: 1) Specialized MemoryInterviewer component creation, 2) GPT-4 system prompt engineering for contextual questions, 3) Voice input integration with Whisper, 4) UI implementation with specified design elements,  5) Memory storage logic, and 6) API endpoint configuration for interview progression 7) Use and create Artefacts in the code base to create a UI element like a document that renders the memory with Editor.js. Include prompt templates and component structure details.",
       "reasoning": "This task combines UI development with complex AI integration. It requires sophisticated prompt engineering, voice transcription, and a responsive UI that can adapt to user responses. The conversational nature adds significant complexity."
     },
     {

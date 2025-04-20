@@ -64,6 +64,13 @@
       "when": 1745175379593,
       "tag": "0008_demonic_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1745177597836,
+      "tag": "0009_silky_joshua_kane",
+      "breakpoints": true
     }
   ]
 }
