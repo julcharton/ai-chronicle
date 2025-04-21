@@ -2,9 +2,10 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useRef } from 'react';
-import { artifactDefinitions, ArtifactKind } from './artifact';
-import { Suggestion } from '@/lib/db/schema';
+import { artifactDefinitions, type ArtifactKind } from './artifact';
+import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import type { MemoryBlock } from '@/types/memory';
 
 export type DataStreamDelta = {
   type:
@@ -12,13 +13,20 @@ export type DataStreamDelta = {
     | 'code-delta'
     | 'sheet-delta'
     | 'image-delta'
+    | 'memory-block'
+    | 'memory-block-update'
+    | 'memory-block-delete'
     | 'title'
     | 'id'
     | 'suggestion'
     | 'clear'
     | 'finish'
     | 'kind';
-  content: string | Suggestion;
+  content:
+    | string
+    | Suggestion
+    | MemoryBlock
+    | { id: string; content?: string; metadata?: any };
 };
 
 export function DataStreamHandler({ id }: { id: string }) {

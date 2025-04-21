@@ -23,6 +23,7 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { createMemory } from '@/lib/ai/tools/create-memory';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
                   'getWeather',
                   'createDocument',
                   'updateDocument',
+                  'createMemory',
                   'requestSuggestions',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
@@ -101,6 +103,7 @@ export async function POST(request: Request) {
             getWeather,
             createDocument: createDocument({ session, dataStream }),
             updateDocument: updateDocument({ session, dataStream }),
+            createMemory: createMemory({ session, dataStream }),
             requestSuggestions: requestSuggestions({
               session,
               dataStream,

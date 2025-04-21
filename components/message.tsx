@@ -18,7 +18,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
+import { MemoryPreview } from './memory-preview';
 
 const PurePreviewMessage = ({
   chatId,
@@ -164,6 +165,8 @@ const PurePreviewMessage = ({
                         <Weather />
                       ) : toolName === 'createDocument' ? (
                         <DocumentPreview isReadonly={isReadonly} args={args} />
+                      ) : toolName === 'createMemory' ? (
+                        <MemoryPreview isReadonly={isReadonly} args={args} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
@@ -190,6 +193,11 @@ const PurePreviewMessage = ({
                         <Weather weatherAtLocation={result} />
                       ) : toolName === 'createDocument' ? (
                         <DocumentPreview
+                          isReadonly={isReadonly}
+                          result={result}
+                        />
+                      ) : toolName === 'createMemory' ? (
+                        <MemoryPreview
                           isReadonly={isReadonly}
                           result={result}
                         />

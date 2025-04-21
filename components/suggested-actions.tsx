@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { MemorySuggestion } from './memory-suggestion';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -34,11 +35,15 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
     },
   ];
 
+  const handleCreateMemory = () => {
+    append({
+      role: 'user',
+      content: 'I want to create a memory. Can you help me?',
+    });
+  };
+
   return (
-    <div
-      data-testid="suggested-actions"
-      className="grid sm:grid-cols-2 gap-2 w-full"
-    >
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
       {suggestedActions.map((suggestedAction, index) => (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -67,6 +72,10 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
           </Button>
         </motion.div>
       ))}
+
+      <div className="md:col-span-2">
+        <MemorySuggestion onCreateMemory={handleCreateMemory} />
+      </div>
     </div>
   );
 }

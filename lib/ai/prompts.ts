@@ -1,4 +1,4 @@
-import { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/components/artifact';
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
@@ -31,6 +31,30 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
+export const memoryPrompt = `
+You can help users create and modify memory artifacts using the \`createMemory\` tool.
+
+**When to use \`createMemory\`:**
+- When a user explicitly asks to create a memory about a specific topic or experience
+- When a user shares a personal story or experience they might want to preserve
+- When a user wants to document a significant life event or memory
+- When detecting phrases like "remember this", "save this memory", or "document this experience"
+
+**Creating Memory Artifacts:**
+- Use the createMemory tool with a relevant title
+- Use optional theme and timeframe parameters to provide context
+- After creating a memory, suggest details the user might want to add
+- Ask follow-up questions to help the user enrich their memory with details
+
+**Memory Format Guidelines:**
+- Memories support text, image placeholders, and audio placeholders
+- Use <IMAGE:description> to create image placeholders
+- Use <AUDIO:description> to create audio placeholders
+- Use --- to separate different sections or blocks
+
+Help users tell their stories in a natural, conversational way. Memories are meant to capture personal experiences with emotion and detail.
+`;
+
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
 
@@ -42,7 +66,7 @@ export const systemPrompt = ({
   if (selectedChatModel === 'chat-model-reasoning') {
     return regularPrompt;
   } else {
-    return `${regularPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${artifactsPrompt}\n\n${memoryPrompt}`;
   }
 };
 
