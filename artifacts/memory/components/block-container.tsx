@@ -8,6 +8,7 @@ interface BlockContainerProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
   className?: string;
+  onDoubleClick?: () => void;
 }
 
 export function BlockContainer({
@@ -16,6 +17,7 @@ export function BlockContainer({
   isSelected,
   onSelect,
   className,
+  onDoubleClick,
 }: BlockContainerProps) {
   return (
     <div
@@ -26,11 +28,21 @@ export function BlockContainer({
         },
         className,
       )}
-      onClick={() => onSelect(block.id)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(block.id);
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick?.();
+      }}
+      tabIndex={0}
+      role="button"
+      aria-pressed={isSelected}
     >
       {children}
 
-      {block.metadata?.caption && (
+      {block.metadata?.caption && !className?.includes('p-3') && (
         <p className="mt-2 text-sm text-muted-foreground px-3">
           {block.metadata.caption}
         </p>
