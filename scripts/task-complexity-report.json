@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2025-04-19T23:17:28.421Z",
+    "generatedAt": "2025-04-22T03:58:15.291Z",
     "tasksAnalyzed": 10,
     "thresholdScore": 5,
     "projectName": "Your Project Name",
@@ -9,83 +9,83 @@
   "complexityAnalysis": [
     {
       "taskId": 1,
-      "taskTitle": "Setup Project Foundation with Next.js",
-      "complexityScore": 7,
+      "taskTitle": "Setup Project Repository with Next.js App Router",
+      "complexityScore": 5,
       "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the Next.js project setup into specific subtasks covering: 1) Next.js App Router initialization, 2) PostgreSQL/Drizzle integration, 3) OpenAI API configuration, 4) Authentication flow implementation, and 5) Project structure organization. For each subtask, include specific files to create and dependencies to install.",
-      "reasoning": "This task involves multiple technologies (Next.js, PostgreSQL, Prisma, OpenAI) and requires setting up the foundation for the entire application. The complexity comes from integrating these different systems and ensuring they work together properly."
+      "expansionPrompt": "Break down the Next.js App Router project setup into specific technical steps including repository initialization, Next.js configuration, database connection setup, environment configuration, and dependency management.",
+      "reasoning": "This task involves several distinct technical steps that are moderately complex. Setting up Next.js with App Router requires specific configuration, and integrating Prisma with PostgreSQL adds additional complexity. The task is foundational but follows established patterns."
     },
     {
       "taskId": 2,
-      "taskTitle": "Implement Core Data Models",
+      "taskTitle": "Implement Core Data Models and Database Schema",
       "complexityScore": 6,
       "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the core data model implementation into subtasks covering: 1) TypeScript interface definitions for Memory, Timeline, Person models, 2) Drizzle schema creation with proper relationships, 3) Database migration setup, 4) CRUD operations implementation, and 5) Relationship validation and testing. Include specific field definitions and relationship types.",
-      "reasoning": "Creating the data models requires careful planning of relationships between entities and implementing proper CRUD operations. The complexity is moderate as it involves database schema design, migrations, and TypeScript interfaces."
+      "expansionPrompt": "Detail the specific steps for implementing the database schema, including defining Document and Chat interfaces, creating Prisma models, setting up relationships, implementing migrations, and ensuring proper typing throughout the application.",
+      "reasoning": "This task requires careful data modeling and understanding of relationships between entities. Setting up proper database schemas with migrations and typing requires attention to detail. The 1:1 relationship between documents and chats adds complexity to the data model design."
     },
     {
       "taskId": 3,
-      "taskTitle": "Develop AI-Guided Memory Capture Interface",
-      "complexityScore": 8,
+      "taskTitle": "Develop Memory List Management Interface",
+      "complexityScore": 7,
       "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the AI-guided memory capture interface into subtasks covering: 1) Specialized MemoryInterviewer component creation, 2) GPT-4 system prompt engineering for contextual questions, 3) Voice input integration with Whisper, 4) UI implementation with specified design elements, 5) Memory storage logic, and 6) API endpoint configuration for interview progression. Include prompt templates and component structure details.",
-      "reasoning": "This task combines UI development with complex AI integration. It requires sophisticated prompt engineering, voice transcription, and a responsive UI that can adapt to user responses. The conversational nature adds significant complexity."
+      "expansionPrompt": "Break down the memory list interface implementation into UI components, data fetching logic, search functionality, filtering mechanisms, pagination implementation, and responsive design considerations.",
+      "reasoning": "This task involves both frontend and backend work with multiple interactive features. Implementing search, filtering, sorting, and pagination requires careful state management and API design. The responsive design requirements add another layer of complexity."
     },
     {
       "taskId": 4,
-      "taskTitle": "Build Auto-Organized Timeline View",
+      "taskTitle": "Build Markdown Document Editor with Floating Menu",
       "complexityScore": 8,
-      "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the auto-organized timeline view into subtasks covering: 1) Timeline component with decade-based segments, 2) NLP date/event extraction implementation, 3) AI summary generation for memories, 4) Progressive decade loading mechanism, 5) API endpoint for year-based memory retrieval, and 6) Time-travel navigation UI. Include specific NLP techniques and rendering approaches.",
-      "reasoning": "This task involves complex UI rendering, NLP for date extraction, and AI for generating summaries. The progressive loading and decade-based organization add technical challenges, making this a high-complexity task."
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the steps for implementing a markdown editor by adapting existing code, including floating menu implementation, formatting options, auto-save functionality, state management, keyboard shortcuts, and responsive design considerations.",
+      "reasoning": "Implementing a rich text editor with floating menus is inherently complex. This task requires modifying existing code, implementing real-time formatting features, managing document state, and ensuring proper auto-save functionality. The combination of UI complexity and state management makes this challenging."
     },
     {
       "taskId": 5,
-      "taskTitle": "Implement Memory Vault Storage",
-      "complexityScore": 9,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the memory vault storage implementation into subtasks covering: 1) S3 integration for 50GB/user storage, 2) Media handling for different file types, 3) AI auto-tagging system, 4) Media processing for voice/photo/video, 5) Privacy controls with Memory Lock feature, 6) E2E encryption implementation, and 7) Storage quota management. Include security considerations and media processing techniques.",
-      "reasoning": "This task has high complexity due to the variety of media types, security requirements (E2E encryption), and AI-based auto-tagging. Handling different media formats and implementing proper security measures requires significant technical expertise."
+      "taskTitle": "Implement Image Upload and Integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the image upload feature into API endpoint creation, frontend integration, image processing logic, storage implementation, error handling, and UI integration with the markdown editor.",
+      "reasoning": "Image handling involves both frontend and backend work with security considerations. The task requires file validation, API endpoint creation, storage management, and integration with the editor. Image optimization and error handling add additional complexity."
     },
     {
       "taskId": 6,
-      "taskTitle": "Develop Light AI Persona with RAG",
-      "complexityScore": 9,
-      "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the RAG-based AI persona development into subtasks covering: 1) Vector embedding creation for memory content, 2) RAG implementation using existing provider pattern, 3) API endpoint for persona training, 4) Response generation with ethical boundaries, 5) Source citation mechanism, and 6) Contextual retrieval based on theme/date/person. Include vector database selection and embedding strategy details.",
-      "reasoning": "Implementing a RAG system is highly complex, requiring vector embeddings, sophisticated retrieval mechanisms, and careful prompt engineering. The ethical boundaries and contextual retrieval add additional layers of complexity."
+      "taskTitle": "Develop AI Chat Interface for Memory Guidance",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the implementation steps for the AI chat interface, including server adaptation, UI development, prompt engineering for memory elicitation, GPT-4 integration, state management, persistence implementation, and error handling.",
+      "reasoning": "This task combines complex UI work with sophisticated AI integration. Creating specialized prompts for memory elicitation requires careful design. The integration with GPT-4 Turbo, maintaining chat history, and ensuring proper error handling all contribute to the high complexity."
     },
     {
       "taskId": 7,
-      "taskTitle": "Build Family Tree Lite Feature",
+      "taskTitle": "Implement Memory Creation Flow",
       "complexityScore": 7,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the family tree feature into subtasks covering: 1) Drag-and-drop family tree builder UI, 2) Person entity management with profile suggestions, 3) Permission control system for shared viewing, 4) Relationship mapping implementation, and 5) Memory-to-family member connection mechanism. Include UI component structure and relationship data model details.",
-      "reasoning": "This task combines UI challenges (drag-and-drop interface) with data modeling for family relationships. The permission controls add complexity, though it builds on existing data models which reduces the overall complexity somewhat."
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the memory creation flow into workflow design, UI implementation, state management, AI integration for initial prompting, navigation between interfaces, and error handling components.",
+      "reasoning": "This task requires coordinating multiple components (document editor and chat) with complex state management. The flow must handle AI prompting, user interactions, and proper state transitions. Ensuring a smooth user experience across this flow adds significant complexity."
     },
     {
       "taskId": 8,
-      "taskTitle": "Implement Onboarding Journey",
+      "taskTitle": "Implement Memory Editing Flow",
       "complexityScore": 6,
       "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the onboarding journey implementation into subtasks covering: 1) AI greeting and starter question flow, 2) Initial timeline building logic, 3) Progressive feature disclosure mechanism, 4) UI design with warm elements and animations, and 5) Onboarding completion tracking. Include specific onboarding steps and UI state transitions.",
-      "reasoning": "The onboarding journey is moderately complex, requiring thoughtful UX design and integration with the AI interview system. The initial timeline building adds some complexity, but it leverages existing components which reduces the overall difficulty."
+      "expansionPrompt": "Detail the steps for implementing the memory editing flow, including loading existing documents, maintaining chat context, implementing auto-save, designing the editing UI, and handling errors and recovery.",
+      "reasoning": "While similar to the creation flow, this task has additional complexity in loading existing data and maintaining context. The version history or change tracking adds complexity, but it builds on components already developed in previous tasks."
     },
     {
       "taskId": 9,
-      "taskTitle": "Develop Memory Capture User Flow",
+      "taskTitle": "Implement Prompt Security and AI Boundaries",
       "complexityScore": 7,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the memory capture user flow into subtasks covering: 1) Topic-specific conversation initiation UI, 2) AI follow-up question generation system, 3) Automatic timeline placement with date extraction, 4) Media attachment capabilities, and 5) Auto-saving mechanism with UI feedback. Include prompt engineering details and state management approach.",
-      "reasoning": "This task combines UI development with AI integration for generating contextual questions. The automatic timeline placement and media attachment features add complexity, though it builds on existing components from previous tasks."
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the implementation of AI security measures into system prompt design, template creation for different scenarios, guardrail implementation, content filtering, feedback mechanisms, and monitoring systems.",
+      "reasoning": "This task involves sophisticated prompt engineering and security considerations. Creating effective guardrails that limit AI to memory discussions without being too restrictive requires careful design. The content filtering and monitoring systems add significant complexity."
     },
     {
       "taskId": 10,
-      "taskTitle": "Implement Timeline Exploration for Descendants",
-      "complexityScore": 8,
-      "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the timeline exploration for descendants into subtasks covering: 1) Descendant view of timeline, 2) Memory detail view with media integration, 3) AI-generated summaries and narrative arcs, 4) Theme-based timeline clustering, 5) Shared family viewing with permissions, and 6) 'Key Moments' summary view implementation. Include UI mockups and permission model details.",
-      "reasoning": "This task involves sophisticated UI development for timeline exploration, complex AI-generated narrative arcs, and permission-based sharing. The theme-based clustering and 'Key Moments' feature add significant complexity to prevent information overload."
+      "taskTitle": "Implement User Onboarding and Documentation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail the steps for creating user onboarding, including first-time user flow design, tooltip implementation, help documentation creation, contextual help integration, example content creation, and feedback collection mechanisms.",
+      "reasoning": "This task is primarily content and UX focused rather than technically complex. Creating clear documentation and onboarding requires attention to detail and good UX design, but it doesn't involve complex technical challenges compared to other tasks in the project."
     }
   ]
 }

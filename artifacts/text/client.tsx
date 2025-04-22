@@ -10,12 +10,21 @@ import {
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
-import { Suggestion } from '@/lib/db/schema';
+import type { Suggestion } from '@/lib/db/schema';
 import { toast } from 'sonner';
 import { getSuggestions } from '../actions';
 
 interface TextArtifactMetadata {
   suggestions: Array<Suggestion>;
+  isMarkdown?: boolean; // Flag to indicate if document is markdown
+  markdownOptions?: {
+    enableHeadings: boolean;
+    enableLists: boolean;
+    enableFormatting: boolean;
+    enableLinks: boolean;
+    enableImages: boolean;
+    enableCodeBlocks: boolean;
+  };
 }
 
 export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
@@ -26,12 +35,22 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
 
     setMetadata({
       suggestions,
+      isMarkdown: true, // Default to markdown mode
+      markdownOptions: {
+        enableHeadings: true,
+        enableLists: true,
+        enableFormatting: true,
+        enableLinks: true,
+        enableImages: true,
+        enableCodeBlocks: true,
+      },
     });
   },
   onStreamPart: ({ streamPart, setMetadata, setArtifact }) => {
     if (streamPart.type === 'suggestion') {
       setMetadata((metadata) => {
         return {
+          ...metadata,
           suggestions: [
             ...metadata.suggestions,
             streamPart.content as Suggestion,
@@ -78,21 +97,24 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       return <DiffView oldContent={oldContent} newContent={newContent} />;
     }
 
+    // Classes for markdown document container
+    const containerClasses = `flex flex-row py-8 md:p-20 px-4 ${
+      metadata?.isMarkdown ? 'markdown-document' : ''
+    }`;
+
     return (
       <>
-        <div className="flex flex-row py-8 md:p-20 px-4">
+        <div className={containerClasses}>
           <Editor
             content={content}
-            suggestions={metadata ? metadata.suggestions : []}
+            suggestions={metadata?.suggestions || []}
             isCurrentVersion={isCurrentVersion}
             currentVersionIndex={currentVersionIndex}
             status={status}
             onSaveContent={onSaveContent}
           />
 
-          {metadata &&
-          metadata.suggestions &&
-          metadata.suggestions.length > 0 ? (
+          {metadata?.suggestions && metadata.suggestions.length > 0 ? (
             <div className="md:hidden h-dvh w-12 shrink-0" />
           ) : null}
         </div>
@@ -106,7 +128,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       onClick: ({ handleVersionChange }) => {
         handleVersionChange('toggle');
       },
-      isDisabled: ({ currentVersionIndex, setMetadata }) => {
+      isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
           return true;
         }
