@@ -31,6 +31,16 @@ export interface MemoryEditorStateOptions {
   debounceDelay?: number;
 
   /**
+   * Maximum number of retry attempts for failed saves
+   */
+  maxRetries?: number;
+
+  /**
+   * Delay between retry attempts in milliseconds
+   */
+  retryDelay?: number;
+
+  /**
    * Enable debug logging
    */
   debug?: boolean;
@@ -50,16 +60,24 @@ export class MemoryEditorState {
   private debouncedUpdate: ReturnType<typeof debounce>;
   private lastContent = '';
   private pendingUpdate = false;
+  private maxRetries: number;
+  private retryDelay: number;
+  private retryCount = 0;
+  private failedContent: string | null = null;
 
   constructor({
     memoryId,
     onContentChange,
     debounceDelay = 1000,
+    maxRetries = 3,
+    retryDelay = 2000,
     debug = false,
   }: MemoryEditorStateOptions) {
     this.memoryId = memoryId;
     this.onContentChange = onContentChange;
     this.debug = debug;
+    this.maxRetries = maxRetries;
+    this.retryDelay = retryDelay;
 
     // Create a debounced version of the update function
     this.debouncedUpdate = debounce(
@@ -124,8 +142,37 @@ export class MemoryEditorState {
     try {
       await this.onContentChange(this.memoryId, content, true);
       this.debugLog('Content saved successfully');
+
+      // Reset retry counter on successful save
+      this.retryCount = 0;
+      this.failedContent = null;
     } catch (error) {
       console.error('Failed to update memory content:', error);
+
+      // Store failed content for retry
+      this.failedContent = content;
+
+      // Attempt retry if we haven't exceeded max retries
+      if (this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        this.debugLog(
+          `Retry attempt ${this.retryCount}/${this.maxRetries} in ${this.retryDelay}ms`,
+        );
+
+        // Schedule retry after delay
+        setTimeout(() => {
+          if (this.failedContent) {
+            this.debugLog(`Executing retry attempt ${this.retryCount}`);
+            this.updateContent(this.failedContent);
+          }
+        }, this.retryDelay);
+      } else {
+        this.debugLog(
+          `Maximum retry attempts (${this.maxRetries}) reached. Save failed.`,
+        );
+        // Reset retry counter but keep failed content in case manual retry is triggered
+        this.retryCount = 0;
+      }
     }
   }
 
@@ -146,6 +193,10 @@ export class MemoryEditorState {
     if (this.pendingUpdate) {
       this.debouncedUpdate.flush();
       return true;
+    } else if (this.failedContent) {
+      // If we have failed content that hasn't been saved, try again
+      this.updateContent(this.failedContent);
+      return true;
     }
     return false;
   }
@@ -156,6 +207,13 @@ export class MemoryEditorState {
   public cancelUpdates(): void {
     this.debouncedUpdate.cancel();
     this.pendingUpdate = false;
+  }
+
+  /**
+   * Check if there are any pending or failed updates
+   */
+  public hasPendingChanges(): boolean {
+    return this.pendingUpdate || this.failedContent !== null;
   }
 }
 
@@ -186,6 +244,11 @@ export function createMemoryEditorHandler(options: MemoryEditorStateOptions) {
      * Cancel pending updates
      */
     cancelUpdates: () => stateManager.cancelUpdates(),
+
+    /**
+     * Check if there are pending changes
+     */
+    hasPendingChanges: () => stateManager.hasPendingChanges(),
   };
 }
 

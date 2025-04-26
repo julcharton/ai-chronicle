@@ -2,14 +2,17 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { MemoryEditor } from './memory-editor';
-import { updateMemoryAction } from '@/app/(chat)/memories/[id]/actions';
 import {
   createMemoryEditorHandler,
-  extractMetadataFromContent,
   validateMemoryContent,
 } from '@/lib/editor/memory-editor-sync';
 import { usePathname } from 'next/navigation';
 import type { Suggestion } from '@/lib/db/schema';
+import {
+  AutoSaveStatus,
+  type AutoSaveStatus as AutoSaveStatusType,
+} from './auto-save-status';
+import { autoSaveService } from '@/lib/services/auto-save-service';
 
 export type MemoryEditorContainerProps = {
   memoryId: string;
@@ -23,12 +26,50 @@ export function MemoryEditorContainer({
   initialTitle,
 }: MemoryEditorContainerProps) {
   const [content, setContent] = useState(initialContent);
-  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<AutoSaveStatusType>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | undefined>(undefined);
   const pathname = usePathname();
+
+  // Track pending updates to handle navigation and window close events
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   // Reference to track if we're currently updating from remote source
   const isUpdatingRef = useRef(false);
+
+  // Save timeout for delayed "saved" status transitions
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Configure auto-save status change handler
+  useEffect(() => {
+    const handleStatusChange = (
+      status: 'idle' | 'saving' | 'saved' | 'error',
+    ) => {
+      setSaveStatus(status);
+
+      // For saved status, set a timeout to change back to idle after 3 seconds
+      if (status === 'saved') {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+          setSaveStatus('idle');
+        }, 3000);
+      }
+    };
+
+    autoSaveService.updateConfig({
+      onStatusChange: handleStatusChange,
+    });
+
+    return () => {
+      // Clean up
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Auto-save handler for memory content
   const handleContentChange = useCallback(
@@ -43,33 +84,28 @@ export function MemoryEditorContainer({
 
       // Update local state
       setContent(validContent);
+      setHasPendingChanges(true);
 
       if (debounced) {
-        setIsSaving(true);
+        // Clear any existing timeout for status transitions
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
 
         try {
-          // Extract metadata from content
-          const metadata = extractMetadataFromContent(validContent);
+          // Use auto-save service to save the content
+          const result = await autoSaveService.queueSave(id, validContent);
 
-          // Update memory on the server
-          const result = await updateMemoryAction({
-            id,
-            content: validContent,
-            metadata,
-          });
-
-          if (result.success) {
-            setLastSavedAt(new Date());
-          } else {
-            console.error(
-              'Failed to save changes:',
-              result.error || 'Please try again later',
-            );
+          if (result.success && result.timestamp) {
+            setLastSavedAt(result.timestamp);
+            setHasPendingChanges(false);
+          } else if (result.error) {
+            setSaveError(result.error);
           }
         } catch (error) {
-          console.error('Error saving memory:', error);
-        } finally {
-          setIsSaving(false);
+          console.error('Error in auto-save:', error);
+          setSaveError('Unexpected error during save');
         }
       }
     },
@@ -105,17 +141,42 @@ export function MemoryEditorContainer({
     );
   }, []);
 
+  // Force save any pending changes when user tries to navigate away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasPendingChanges) {
+        // Save pending changes
+        autoSaveService.forceSave(memoryId);
+
+        // Standard approach to show browser dialog when there are unsaved changes
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    // Handle navigation events
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      // If component unmounts with pending changes, try to save them
+      if (hasPendingChanges) {
+        autoSaveService.forceSave(memoryId);
+      }
+    };
+  }, [hasPendingChanges, memoryId]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center px-4 py-2 border-b">
         <h1 className="text-xl font-semibold truncate">{initialTitle}</h1>
-        {isSaving ? (
-          <span className="text-sm text-muted-foreground">Saving...</span>
-        ) : lastSavedAt ? (
-          <span className="text-sm text-muted-foreground">
-            Saved {lastSavedAt.toLocaleTimeString()}
-          </span>
-        ) : null}
+        <AutoSaveStatus
+          status={saveStatus}
+          lastSavedAt={lastSavedAt}
+          error={saveError}
+        />
       </div>
 
       <div className="flex-1">
