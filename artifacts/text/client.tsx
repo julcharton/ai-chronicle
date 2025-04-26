@@ -29,7 +29,7 @@ interface TextArtifactMetadata {
 
 export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   kind: 'text',
-  description: 'Useful for text content, like drafting essays and emails.',
+  description: 'Capture your personal memories with rich details and emotions.',
   initialize: async ({ documentId, setMetadata }) => {
     const suggestions = await getSuggestions({ documentId });
 
@@ -99,7 +99,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
 
     // Classes for markdown document container
     const containerClasses = `flex flex-row py-8 md:p-20 px-4 ${
-      metadata?.isMarkdown ? 'markdown-document' : ''
+      metadata?.isMarkdown ? 'markdown-document memory-document' : ''
     }`;
 
     return (
@@ -176,23 +176,23 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   toolbar: [
     {
       icon: <PenIcon />,
-      description: 'Add final polish',
+      description: 'Add more emotional details',
       onClick: ({ appendMessage }) => {
         appendMessage({
           role: 'user',
           content:
-            'Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.',
+            'Please enhance this memory with more emotional details and sensory impressions. Make it more vivid and personal.',
         });
       },
     },
     {
       icon: <MessageIcon />,
-      description: 'Request suggestions',
+      description: 'Ask for prompt questions',
       onClick: ({ appendMessage }) => {
         appendMessage({
           role: 'user',
           content:
-            'Please add suggestions you have that could improve the writing.',
+            'Please suggest some questions that could help me remember more details about this memory.',
         });
       },
     },

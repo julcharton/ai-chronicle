@@ -11,7 +11,7 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     const { fullStream } = streamText({
       model: myProvider.languageModel('artifact-model'),
       system:
-        'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+        'Write a detailed and personal memory about the given topic. Focus on emotions, sensory details, and personal significance. Use first-person perspective and descriptive language to bring the memory to life. Format with clear headings and meaningful structure.',
       experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: title,
     });
@@ -38,7 +38,8 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
 
     const { fullStream } = streamText({
       model: myProvider.languageModel('artifact-model'),
-      system: updateDocumentPrompt(document.content, 'text'),
+      system:
+        'Enhance this memory document based on the provided description. Maintain the personal, first-person perspective and emotional tone. Add more vivid details, sensory elements, or emotional significance as appropriate. Preserve the existing structure while enriching the content.',
       experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: description,
       experimental_providerMetadata: {

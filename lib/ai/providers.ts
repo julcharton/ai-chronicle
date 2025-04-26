@@ -20,6 +20,7 @@ export const myProvider = isTestEnvironment
         'chat-model-reasoning': reasoningModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,
+        'memory-document-model': chatModel,
       },
     })
   : customProvider({
@@ -31,6 +32,7 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': openai('gpt-3.5-turbo'),
         'artifact-model': openai('gpt-4o'),
+        'memory-document-model': openai('gpt-4o'),
       },
       imageModels: {
         'small-model': openai.image('dall-e-3'),

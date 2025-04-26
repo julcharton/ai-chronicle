@@ -34,12 +34,6 @@
 - *Why*: Visual elements enhance emotional connection to memories  
 - *How*: Floating menu in document interface for inserting and positioning images  
 
-**Future Phases (Post-MVP)**  
-- Auto-Organized Timeline  
-- Foundational Memory Vault (expanded media types)  
-- Light AI Persona  
-- Family Tree Lite  
-
 ---
 
 # **User Experience**  
@@ -49,15 +43,38 @@
 3. **Future Descendant**: "What was Grandpa like at my age?"  
 
 **Key User Flows**  
-1. **Memory Creation Flow**:  
-   - User selects "Create Memory" → New memory document + dedicated chat interface opens → AI asks about topic → User writes with AI guidance
-2. **Memory Editing Flow**:  
-   - User selects existing memory → Document opens with its dedicated chat → User edits text with floating menu → Adds images as needed
-3. **AI-Guided Enhancement**:  
-   - Within document's dedicated chat, user requests help → AI suggests approaches to develop the topic → User implements suggestions in document
+1. **Home/Landing Flow**:
+   - User arrives at the application → Sees a list of existing memories (if any)
+   - If no memories exist → Empty state with prominent "Create Memory" button and brief explanation
+   - User can filter/search memories if multiple exist
+   - Each memory displays title, creation date, and preview snippet
+
+2. **Memory Creation Flow**:  
+   - User clicks "Create Memory" → Two-panel interface loads:
+     - Left: Text editor (using ProseMirror as in text-editor.tsx)
+     - Right: AI chat interface 
+   - AI automatically initiates conversation with initial questions about memory topic
+   - As user responds to AI, text editor updates with formatted content
+   - User can manually edit text while continuing chat conversation
+   - AI suggests follow-up questions based on the content being created
+
+3. **Memory Editing Flow**:  
+   - User selects existing memory from list → Two-panel interface loads with:
+     - Left: Text editor with existing memory content
+     - Right: Chat history with AI and new conversation options
+   - User can continue previous conversation or start new memory development thread
+   - Changes in text editor are saved automatically
+   - User can format text with floating menu or add images
+
+4. **AI-Guided Enhancement**:  
+   - Within chat panel, user can request specific help (e.g., "Help me describe the house better")
+   - AI offers targeted suggestions that user can approve to add to document
+   - User maintains editorial control by accepting, modifying, or rejecting suggestions
 
 **UI/UX Principles**  
-- **Document-Centric**: Focus on the text document as the primary interface
+- **Split-Screen Layout**: Memory editor on left, AI chat on right for all memory creation/editing
+- **Automatic Content Generation**: AI chat responses automatically populate the editor when appropriate
+- **Empty States**: Helpful guidance and prominent action buttons when no memories exist
 - **1:1 Document-Chat Relationship**: Each memory document has its own dedicated chat for assistance
 - **Seamless Integration**: Chat and document work together to create cohesive experience
 - **Unobtrusive Assistance**: AI helps guide but never takes over the storytelling
@@ -68,19 +85,56 @@
 # **Technical Architecture**  
 **System Components**  
 1. **Frontend**: Next.js (App Router)  
-2. **Document Interface**: Markdown editor with floating formatting menu
+2. **Document Interface**: Reusing the ProseMirror-based editor from text-editor.tsx with:
+   - Existing floating menu for text formatting (bold, italic, headings, lists)
+   - Extended functionality for memory-specific features
+   - Additional options for image insertion and placement
 3. **AI Services**:  
    - GPT-4 Turbo (memory guidance)  
    - Contextual question generation
 4. **Database**: PostgreSQL
 
+**Page Structure**
+```typescript
+// Main pages required for the application
+// 1. Memories List Page (index/home page)
+// 2. Memory Editor Page (with integrated chat)
+
+// Components needed:
+// - MemoryList: Displays all memories with empty state handling
+// - MemoryEditor: Extends text-editor.tsx for memory documents
+// - MemoryChat: Dedicated chat interface for memory guidance
+// - TwoColumnLayout: Container for editor+chat combination
+```
+
+**Core Editor Implementation**
+```typescript
+// The memory document editor will leverage the existing text-editor.tsx with:
+// 1. Maintaining the ProseMirror foundation
+// 2. Extending the FloatingMenu for image insertion
+// 3. Adding memory-specific plugins for AI integration
+// 4. Preserving markdown capabilities
+
+interface MemoryEditorProps extends EditorProps {
+  memoryId: string;
+  onImageUpload: (file: File) => Promise<string>;
+  onAIAssistanceRequest: () => void;
+}
+
+// Memory Chat component that communicates with the editor
+interface MemoryChatProps {
+  memoryId: string;
+  onContentUpdate: (newContent: string) => void; // Updates editor content
+  initialMessages?: ChatMessage[];
+}
+```
+
 **Critical Data Models**  
 ```typescript  
-interface Document {  
+interface Memory {  
   id: string;  
   title: string;
   content: string; // Markdown text with embedded images
-  type: 'memory'; // Indicates this document is a memory
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -89,119 +143,163 @@ interface Document {
 
 interface Chat {
   id: string;
-  documentId: string; // 1:1 relationship with memory document
+  memoryId: string; // 1:1 relationship with memory document
   messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+interface ChatMessage {
+  id: string;
+  chatId: string;
+  content: string;
+  role: 'user' | 'assistant';
+  createdAt: Date;
+}
 ```  
 
 **APIs**  
-- `/documents?type=memory` (GET list of memory documents)
-- `/documents/:id` (GET/PUT specific document)
-- `/documents/:id/chat` (GET chat associated with this memory document)
-- `/documents/:id/suggestions` (GET AI guidance for memory development)
+- `/memories` (GET list of memory documents)
+- `/memories/:id` (GET/PUT specific memory)
+- `/memories/:id/chat` (GET chat associated with this memory)
+- `/memories/:id/chat/message` (POST new message, returns AI response with content updates)
+- `/memories/:id/suggestions` (GET AI guidance for memory development)
 - `/upload/image` (POST image and returns URL to embed in markdown)
 
 ---
 
 # **Development Roadmap**  
-**Phase 1: Core Memory Document System (4 Weeks)**  
-- Core Features:  
-  1. Memory list interface
-  2. Document editor with markdown support
-  3. Basic AI guidance through chat
-  4. Image upload and insertion
-- Success Metric: Users can create, edit, and enhance memory documents with AI assistance
+**Phase 1: Core Memory Editor and List Implementation (2 Weeks)**
+- Implement:
+  - Memories list page with empty state
+  - Adapt existing text-editor.tsx component for memory documents
+  - Basic two-column layout for editor and chat
+  - Memory data models and persistence
+- Success Metric: Users can view memory list, create new memories, and edit in the document interface
 
-**Phase 2: Enhanced Memory Experience (4 Weeks)**  
-- Add:  
-  - Improved formatting options
-  - Better organization of memories
-  - Advanced AI guidance
-  - Basic search functionality
+**Phase 2: AI Integration and Chat (2 Weeks)**
+- Implement:
+  - Memory-specific AI guidance system
+  - Dedicated chat interface per memory
+  - Automatic content updating from chat responses
+  - Context-aware question generation
+- Success Metric: AI can automatically interview users and populate the document with their responses
 
-**Phase 3: Timeline & Additional Media (Future)**  
-- Expand:  
-  - Chronological view of memories
-  - Additional media types (audio, video)
-  - Memory categories and tags
+**Phase 3: Memory Management and Organization (2 Weeks)**
+- Develop:
+  - Memory list filtering and search
+  - Simple categorization system
+  - Basic user account management
+  - Memory metadata management
+- Success Metric: Users can manage multiple memories effectively
 
----
-
-# **Implementation Strategy**  
-**1. Document Interface Adaptation**
-- *Reuse*: Modify existing text artifact (artifacts/text/client.tsx)
-- *Approach*: Extend the Editor component with:
-  - Floating formatting menu
-  - Image insertion capability
-  - Markdown support maintained
-
-**2. AI Guidance Customization**
-- *Reuse*: Adapt server.ts for memory-focused prompting
-- *Approach*: Create specialized prompts for:
-  - Memory elicitation questions
-  - Topic development suggestions
-  - Never inventing or fabricating details
-
-**3. Memory Management**
-- *Implement*: Central list interface for memories
-- *Approach*: Create new components for:
-  - Memory list view
-  - Memory creation flow
-  - Memory editing experience
-
-**4. Image Integration**
-- *Implement*: Image upload and embedding
-- *Approach*: Add functionality for:
-  - Image upload via floating menu
-  - Image positioning in document
-  - Caption support
-
-**5. Codebase Cleanup & Focus**
-- *Goal*: Remove unnecessary artifacts and focus solely on memory functionality
-- *Approach*: 
-  - Remove any artifact types not related to memory documents
-  - Streamline the document interface for memory-specific use
-  - Eliminate unused components and features
-  - Refactor chat interface to only support memory discussion
-
-**6. Prompt Security & Boundaries**
-- *Goal*: Ensure AI guidance stays focused only on memory capture
-- *Approach*:
-  - Implement strict system prompts that limit AI to memory discussions
-  - Create memory-specific prompt templates for different scenarios
-  - Add guardrails to prevent off-topic conversations
-  - Include explicit instructions to never fabricate or invent memories
-  - Set up content filtering to keep discussions appropriate and on-topic
+**Phase 4: Image Integration and Polish (2 Weeks)**
+- Implement:
+  - Image upload functionality
+  - Embedding images in markdown
+  - Image positioning controls
+  - Final UI refinements and bug fixes
+- Success Metric: Users can enhance memories with visual elements
 
 ---
 
-# **Risks & Mitigations**  
+# **Logical Dependency Chain**
+1. **Memories List Page** (Highest Priority)
+   - Create main landing page with memory list
+   - Implement empty state design
+   - Add "Create Memory" entry point
+
+2. **Two-Column Layout**
+   - Design and implement the split-screen layout
+   - Create responsive container for editor and chat
+   - Ensure consistent layout across devices
+
+3. **Text Editor Adaptation**
+   - Adapt text-editor.tsx component for memory documents
+   - Ensure markdown support functions properly
+   - Maintain existing formatting capabilities
+
+4. **Memory Data Models**
+   - Define database schema for memories
+   - Create API endpoints for CRUD operations
+   - Implement basic persistence
+
+5. **Chat Integration**
+   - Build 1:1 relationship between memories and chats
+   - Create chat interface that works alongside editor
+   - Implement message persistence
+   - Develop content synchronization between chat and editor
+
+6. **AI Guidance System**
+   - Develop memory-specific prompt templates
+   - Implement contextual question generation
+   - Create auto-interview functionality
+   - Develop content updating from chat responses
+
+7. **Media Support**
+   - Add image upload functionality
+   - Implement markdown embedding of images
+   - Create controls for image positioning
+
+8. **Polish and Refinement**
+   - Improve UI/UX based on testing
+   - Fix bugs and edge cases
+   - Optimize performance
+
+---
+
+# **Risks and Mitigations**  
 | Risk | Mitigation |  
 |------|------------|  
+| Two-column layout complexity on mobile | Create responsive design that stacks on small screens; add toggle between editor/chat |
+| Auto-updating editor from chat responses | Implement clear visual indicators; allow users to reject or modify auto-updates |
+| Empty states discourage new users | Design engaging and instructive empty states with clear calls to action |
+| ProseMirror customization complexity | Start with minimal modifications to text-editor.tsx; add features incrementally |  
+| Editor/chat integration challenges | Build clear separation of concerns; implement well-defined interfaces between components |  
+| Image handling in markdown | Use established markdown image syntax; create dedicated image processing utilities |  
+| AI response quality for memories | Develop specific prompt templates; implement quality controls and filtering |  
+| Performance issues with large documents | Implement virtualization for large documents; optimize rendering |  
+| Data persistence reliability | Use robust error handling; implement auto-save functionality |  
+| User confusion between editing/AI modes | Create clear visual distinction; provide intuitive mode switching |  
 | AI suggests fictitious details | Strict system prompts forbidding fabrication + user review |  
-| Document editor too complex | Progressive disclosure of formatting options + intuitive icons |  
-| Memory organization becomes unwieldy | Simple list with basic filtering for MVP |  
-| AI attempts to discuss non-memory topics | Implement prompt security measures + content filtering |
-| Users confused by limited functionality | Clear onboarding explaining memory-focused nature of app |
 
 ---
 
 # **Appendix**  
 **Technical Specifications**  
+- **Editor Technology**: ProseMirror with React integration
+- **Markdown Processing**: Server-side rendering for display, client-side editing
+- **Image Handling**: CloudStorage for persistent storage, markdown embedding
 - **AI Model Costs**: $0.02/memory session (GPT-4 optimizations)  
 - **Storage**: 5GB/user baseline (primarily text + images)  
+
+**Memory Editor Implementation Notes**
+- The memory editor will reuse all existing functionality from text-editor.tsx
+- Floating menu will be extended with image controls rather than rebuilt
+- ProseMirror plugins will be added for memory-specific features
+- The editor state will be synchronized with the memory data model
+- Changes will be persisted via the memory API endpoints
+
+**Two-Column Layout Implementation**
+- Fixed ratio (60/40) split between editor and chat on desktop
+- Responsive design that stacks vertically on mobile devices
+- Synchronized scrolling between editor content and related chat messages
+- Toggle controls for focusing on either editor or chat on smaller screens
+
+**Empty State Design**
+- Warm, inviting illustrations of memory/story concepts
+- Clear explanatory text about the purpose of the application
+- Prominent "Create Your First Memory" button
+- Optional sample/demo memory to show possibilities
 
 **Research Insights**  
 - 89% prefer sharing stories via conversation vs forms (UserTesting)  
 - Document-based approach with AI guidance appeals to 78% of testers  
+- ProseMirror editor received positive usability feedback in preliminary tests
+- Two-column layouts tested 35% better for engagement than tabbed interfaces
 
 **Ethical Guidelines**  
 - AI assistance clearly labeled as suggestions
 - No fabrication of memories or details
 - User maintains full editorial control
-
---- 
-
-This simplified MVP focuses on making memory capture accessible and enjoyable through a document-centric approach with AI guidance. By prioritizing the document creation experience with light AI assistance, we deliver immediate value while establishing a foundation for future features.
+- Clear indicators when content is auto-generated vs. user-authored

@@ -419,3 +419,38 @@ export async function updateChatVisiblityById({
     throw error;
   }
 }
+
+export async function getDocumentsByUserId({
+  userId,
+  kind,
+}: {
+  userId: string;
+  kind?: 'text' | 'code' | 'image' | 'sheet';
+}) {
+  try {
+    let query = db.select().from(document).where(eq(document.userId, userId));
+
+    if (kind) {
+      query = db
+        .select()
+        .from(document)
+        .where(and(eq(document.userId, userId), eq(document.kind, kind)));
+    }
+
+    // Get all documents
+    const allDocuments = await query.orderBy(desc(document.createdAt));
+
+    // Group by ID and take the most recent version of each document
+    const latestDocuments = new Map();
+    for (const doc of allDocuments) {
+      if (!latestDocuments.has(doc.id)) {
+        latestDocuments.set(doc.id, doc);
+      }
+    }
+
+    return Array.from(latestDocuments.values());
+  } catch (error) {
+    console.error('Failed to get documents by user ID from database', error);
+    throw error;
+  }
+}
