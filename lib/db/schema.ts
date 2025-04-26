@@ -9,6 +9,8 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  index,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -19,17 +21,52 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
-export const chat = pgTable('Chat', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  createdAt: timestamp('createdAt').notNull(),
-  title: text('title').notNull(),
-  userId: uuid('userId')
-    .notNull()
-    .references(() => user.id),
-  visibility: varchar('visibility', { enum: ['public', 'private'] })
-    .notNull()
-    .default('private'),
-});
+// Create a dedicated Memory table
+export const memory = pgTable(
+  'Memory',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    title: text('title').notNull(),
+    content: text('content'),
+    createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    metadata: json('metadata').$type<{
+      tags?: string[];
+      isPublic?: boolean;
+      summary?: string;
+      source?: string;
+      aiGenerated?: boolean;
+    }>(),
+  },
+  (table) => ({
+    userIdx: index('memory_user_idx').on(table.userId),
+  }),
+);
+
+export type Memory = InferSelectModel<typeof memory>;
+
+export const chat = pgTable(
+  'Chat',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    createdAt: timestamp('createdAt').notNull(),
+    title: text('title').notNull(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    visibility: varchar('visibility', { enum: ['public', 'private'] })
+      .notNull()
+      .default('private'),
+    memoryId: uuid('memoryId').references(() => memory.id),
+  },
+  (table) => ({
+    memoryIdx: index('memory_idx').on(table.memoryId),
+    userIdx: index('chat_user_idx').on(table.userId),
+  }),
+);
 
 export type Chat = InferSelectModel<typeof chat>;
 
@@ -69,22 +106,24 @@ export type Vote = InferSelectModel<typeof vote>;
 export const document = pgTable(
   'Document',
   {
-    id: uuid('id').notNull().defaultRandom(),
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
     createdAt: timestamp('createdAt').notNull(),
     title: text('title').notNull(),
     content: text('content'),
-    kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet'] })
+    kind: varchar('kind', { enum: ['text', 'code', 'image', 'sheet'] })
       .notNull()
       .default('text'),
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
+    updatedAt: timestamp('updatedAt').notNull(),
+    metadata: json('metadata'),
   },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.id, table.createdAt] }),
-    };
-  },
+  (table) => ({
+    userIdx: index('document_user_idx').on(table.userId),
+    kindIdx: index('document_kind_idx').on(table.kind),
+    createdAtIdx: index('document_createdAt_idx').on(table.createdAt),
+  }),
 );
 
 export type Document = InferSelectModel<typeof document>;
@@ -93,8 +132,9 @@ export const suggestion = pgTable(
   'Suggestion',
   {
     id: uuid('id').notNull().defaultRandom(),
-    documentId: uuid('documentId').notNull(),
-    documentCreatedAt: timestamp('documentCreatedAt').notNull(),
+    documentId: uuid('documentId')
+      .notNull()
+      .references(() => document.id),
     originalText: text('originalText').notNull(),
     suggestedText: text('suggestedText').notNull(),
     description: text('description'),
@@ -106,11 +146,11 @@ export const suggestion = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.id] }),
-    documentRef: foreignKey({
-      columns: [table.documentId, table.documentCreatedAt],
-      foreignColumns: [document.id, document.createdAt],
-    }),
   }),
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+export type MemoryChat = Chat & {
+  memoryId: string;
+};

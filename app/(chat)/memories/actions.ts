@@ -1,8 +1,8 @@
 'use server';
 
 import { auth } from '@/app/(auth)/auth';
-import { getDocumentsByUserId, saveDocument } from '@/lib/db/queries';
-import type { Memory } from '@/lib/types';
+import { getMemoryRepository } from '@/lib/repositories';
+import type { Memory, MemoryMetadata } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -16,22 +16,21 @@ export async function getMemories(): Promise<Memory[]> {
   }
 
   try {
-    // Fetch documents that are of type 'text' (memories)
-    const documents = await getDocumentsByUserId({
-      userId: session.user.id,
-      kind: 'text',
-    });
+    // Use the memory repository to fetch memories
+    const memoryRepository = getMemoryRepository();
+    const memories = await memoryRepository.findByUserId(session.user.id);
 
-    // Map documents to Memory interface
-    const memories = documents.map((doc) => ({
-      id: doc.id,
-      title: doc.title,
-      content: doc.content || '',
-      createdAt: doc.createdAt.toISOString(),
-      updatedAt: doc.createdAt.toISOString(), // Using createdAt as updatedAt for now
+    // Map database memories to Memory interface
+    return memories.map((mem) => ({
+      id: mem.id,
+      title: mem.title,
+      content: mem.content || '',
+      createdAt: mem.createdAt.toISOString(),
+      updatedAt: mem.updatedAt.toISOString(),
+      userId: mem.userId,
+      // Extract metadata fields or use defaults
+      ...((mem.metadata as MemoryMetadata) || {}),
     }));
-
-    return memories;
   } catch (error) {
     console.error('Failed to fetch memories:', error);
     return [];
@@ -53,14 +52,20 @@ export async function createMemory(): Promise<
   try {
     const id = uuidv4();
     const title = 'Untitled Memory';
+    const metadata: MemoryMetadata = {
+      tags: [],
+      isPublic: false,
+      aiGenerated: false,
+    };
 
-    // Create new document with 'text' kind to represent a memory
-    await saveDocument({
+    // Use the memory repository to create a new memory
+    const memoryRepository = getMemoryRepository();
+    await memoryRepository.create({
       id,
       title,
       content: '',
-      kind: 'text',
       userId: session.user.id,
+      metadata,
     });
 
     return { id };

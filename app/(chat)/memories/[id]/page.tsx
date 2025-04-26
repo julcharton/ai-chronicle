@@ -1,5 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
-import { getDocumentById } from '@/lib/db/queries';
+import { getMemoryRepository } from '@/lib/repositories';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -62,22 +62,23 @@ async function MemoryContent({ id }: { id: string }) {
   }
 
   try {
-    const document = await getDocumentById({ id });
+    const memoryRepository = getMemoryRepository();
+    const memory = await memoryRepository.findById(id);
 
-    if (!document || document.userId !== session.user.id) {
+    if (!memory || memory.userId !== session.user.id) {
       notFound();
     }
 
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">{document.title}</h1>
+        <h1 className="text-3xl font-bold mb-6">{memory.title}</h1>
         <div className="text-sm text-muted-foreground mb-8">
-          Created on {new Date(document.createdAt).toLocaleString()}
+          Created on {new Date(memory.createdAt).toLocaleString()}
         </div>
 
         <div className="prose prose-sm dark:prose-invert max-w-none">
-          {document.content ? (
-            <div>{document.content}</div>
+          {memory.content ? (
+            <div>{memory.content}</div>
           ) : (
             <p className="text-muted-foreground italic">
               This memory is empty. Start writing to add content.

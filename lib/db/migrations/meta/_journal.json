@@ -50,6 +50,20 @@
       "when": 1745170348912,
       "tag": "0006_fantastic_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1745643041367,
+      "tag": "0007_rich_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1745643179351,
+      "tag": "0008_dark_maelstrom",
+      "breakpoints": true
     }
   ]
 }

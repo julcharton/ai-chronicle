@@ -26,6 +26,8 @@ import {
   vote,
   type DBMessage,
   type Chat,
+  memory,
+  type Memory,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 
@@ -243,12 +245,14 @@ export async function saveDocument({
   kind,
   content,
   userId,
+  metadata,
 }: {
   id: string;
   title: string;
   kind: ArtifactKind;
   content: string;
   userId: string;
+  metadata?: Record<string, any>;
 }) {
   try {
     return await db
@@ -260,6 +264,8 @@ export async function saveDocument({
         content,
         userId,
         createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: metadata || null,
       })
       .returning();
   } catch (error) {
@@ -309,10 +315,7 @@ export async function deleteDocumentsByIdAfterTimestamp({
     await db
       .delete(suggestion)
       .where(
-        and(
-          eq(suggestion.documentId, id),
-          gt(suggestion.documentCreatedAt, timestamp),
-        ),
+        and(eq(suggestion.documentId, id), gt(suggestion.createdAt, timestamp)),
       );
 
     return await db
@@ -340,20 +343,30 @@ export async function saveSuggestions({
   }
 }
 
-export async function getSuggestionsByDocumentId({
-  documentId,
-}: {
-  documentId: string;
-}) {
+/**
+ * Get all suggestions
+ */
+export async function getSuggestions() {
   try {
-    return await db
-      .select()
+    const suggestions = await db
+      .select({
+        suggestion: suggestion,
+        document: {
+          id: document.id,
+          title: document.title,
+          createdAt: document.createdAt,
+        },
+      })
       .from(suggestion)
-      .where(and(eq(suggestion.documentId, documentId)));
+      .leftJoin(document, eq(suggestion.documentId, document.id))
+      .orderBy(desc(document.createdAt));
+
+    return suggestions.map((row) => ({
+      ...row.suggestion,
+      document: row.document,
+    }));
   } catch (error) {
-    console.error(
-      'Failed to get suggestions by document version from database',
-    );
+    console.error('Failed to get suggestions from database');
     throw error;
   }
 }
@@ -451,6 +464,201 @@ export async function getDocumentsByUserId({
     return Array.from(latestDocuments.values());
   } catch (error) {
     console.error('Failed to get documents by user ID from database', error);
+    throw error;
+  }
+}
+
+/**
+ * Save a memory
+ */
+export async function saveMemory({
+  id,
+  title,
+  content,
+  userId,
+  metadata,
+}: {
+  id: string;
+  title: string;
+  content: string;
+  userId: string;
+  metadata?: Record<string, any>;
+}) {
+  try {
+    return await db
+      .insert(memory)
+      .values({
+        id,
+        title,
+        content,
+        userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: metadata || null,
+      })
+      .returning();
+  } catch (error) {
+    console.error('Failed to save memory in database');
+    throw error;
+  }
+}
+
+/**
+ * Get memory by ID
+ */
+export async function getMemoryById({ id }: { id: string }) {
+  try {
+    const [selectedMemory] = await db
+      .select()
+      .from(memory)
+      .where(eq(memory.id, id));
+
+    return selectedMemory;
+  } catch (error) {
+    console.error('Failed to get memory by id from database');
+    throw error;
+  }
+}
+
+/**
+ * Get all memories for a user
+ */
+export async function getMemoriesByUserId({ userId }: { userId: string }) {
+  try {
+    // Get all memories for the user
+    const memories = await db
+      .select()
+      .from(memory)
+      .where(eq(memory.userId, userId))
+      .orderBy(desc(memory.createdAt));
+
+    return memories;
+  } catch (error) {
+    console.error('Failed to get memories by user ID from database', error);
+    throw error;
+  }
+}
+
+/**
+ * Update a memory
+ */
+export async function updateMemory({
+  id,
+  title,
+  content,
+  metadata,
+}: {
+  id: string;
+  title?: string;
+  content?: string;
+  metadata?: Record<string, any>;
+}) {
+  try {
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (title !== undefined) {
+      updateData.title = title;
+    }
+
+    if (content !== undefined) {
+      updateData.content = content;
+    }
+
+    if (metadata !== undefined) {
+      updateData.metadata = metadata;
+    }
+
+    return await db
+      .update(memory)
+      .set(updateData)
+      .where(eq(memory.id, id))
+      .returning();
+  } catch (error) {
+    console.error('Failed to update memory in database');
+    throw error;
+  }
+}
+
+/**
+ * Get all chats associated with a memory
+ */
+export async function getChatsByMemoryId({ memoryId }: { memoryId: string }) {
+  try {
+    return await db
+      .select()
+      .from(chat)
+      .where(eq(chat.memoryId, memoryId))
+      .orderBy(desc(chat.createdAt));
+  } catch (error) {
+    console.error('Failed to get chats by memory ID from database');
+    throw error;
+  }
+}
+
+/**
+ * Create a new chat for a specific memory
+ */
+export async function createMemoryChat({
+  id,
+  title,
+  userId,
+  memoryId,
+}: {
+  id: string;
+  title: string;
+  userId: string;
+  memoryId: string;
+}) {
+  try {
+    return await db
+      .insert(chat)
+      .values({
+        id,
+        title,
+        userId,
+        memoryId,
+        createdAt: new Date(),
+        visibility: 'private',
+      })
+      .returning();
+  } catch (error) {
+    console.error('Failed to create memory chat in database');
+    throw error;
+  }
+}
+
+/**
+ * Get suggestions for a specific document
+ */
+export async function getSuggestionsByDocumentId({
+  documentId,
+}: { documentId: string }) {
+  try {
+    const suggestions = await db
+      .select({
+        suggestion: suggestion,
+        document: {
+          id: document.id,
+          title: document.title,
+          createdAt: document.createdAt,
+        },
+      })
+      .from(suggestion)
+      .leftJoin(document, eq(suggestion.documentId, document.id))
+      .where(eq(suggestion.documentId, documentId))
+      .orderBy(desc(suggestion.createdAt));
+
+    return suggestions.map((row) => ({
+      ...row.suggestion,
+      document: row.document,
+    }));
+  } catch (error) {
+    console.error(
+      'Failed to get suggestions by document ID from database',
+      error,
+    );
     throw error;
   }
 }
