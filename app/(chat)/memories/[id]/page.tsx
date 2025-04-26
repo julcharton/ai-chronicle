@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowUpIcon as BackIcon } from '@/components/icons';
 import { Suspense } from 'react';
+import { MemoryEditorContainer } from '@/components/memory-editor-container';
 
 interface MemoryPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function MemoryPage({ params }: MemoryPageProps) {
+export default async function MemoryPage({ params }: MemoryPageProps) {
+  const { id } = await params;
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 py-2 border-b">
@@ -26,7 +29,7 @@ export default function MemoryPage({ params }: MemoryPageProps) {
 
       <div className="flex-1 overflow-auto">
         <Suspense fallback={<MemoryLoading />}>
-          <MemoryContent id={params.id} />
+          <MemoryContent id={id} />
         </Suspense>
       </div>
     </div>
@@ -70,21 +73,12 @@ async function MemoryContent({ id }: { id: string }) {
     }
 
     return (
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">{memory.title}</h1>
-        <div className="text-sm text-muted-foreground mb-8">
-          Created on {new Date(memory.createdAt).toLocaleString()}
-        </div>
-
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          {memory.content ? (
-            <div>{memory.content}</div>
-          ) : (
-            <p className="text-muted-foreground italic">
-              This memory is empty. Start writing to add content.
-            </p>
-          )}
-        </div>
+      <div className="h-full">
+        <MemoryEditorContainer
+          memoryId={id}
+          initialContent={memory.content || ''}
+          initialTitle={memory.title}
+        />
       </div>
     );
   } catch (error) {
