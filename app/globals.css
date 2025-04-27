@@ -147,8 +147,44 @@
     }
 }
 
+/* Reset ProseMirror styles */
+.ProseMirror-focused {
+  outline: none !important;
+}
+
+/* Force content wrapping and line breaks */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6,
+.ProseMirror pre,
+.ProseMirror blockquote,
+.ProseMirror ul,
+.ProseMirror ol {
+  width: 100% !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+}
+
+/* Prevent the ProseMirror from growing beyond container */
 .ProseMirror {
-    outline: none;
+  outline: none !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+/* Force the editor container to handle scrolling */
+.markdown-editor {
+  overflow: auto !important;
+  position: relative !important;
+  width: 100% !important;
 }
 
 .cm-editor,

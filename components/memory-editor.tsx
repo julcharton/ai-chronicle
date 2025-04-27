@@ -398,9 +398,32 @@ function PureMemoryEditor({
         ],
       });
 
+      // Create the editor with explicit styles applied to force scrollable behavior
       editorRef.current = new EditorView(containerRef.current, {
         state,
+        attributes: {
+          style:
+            'word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word; max-width: 100%;',
+        },
       });
+
+      // Force editor to break words and limit dimensions
+      if (containerRef.current) {
+        // Apply direct styling to the ProseMirror DOM element
+        const prosemirrorEl =
+          containerRef.current.querySelector('.ProseMirror');
+        if (prosemirrorEl) {
+          prosemirrorEl.setAttribute(
+            'style',
+            'word-wrap: break-word !important; ' +
+              'white-space: pre-wrap !important; ' +
+              'overflow-wrap: break-word !important; ' +
+              'max-width: 100% !important; ' +
+              'width: 100% !important; ' +
+              'overflow: visible !important;',
+          );
+        }
+      }
     }
 
     return () => {
@@ -482,6 +505,39 @@ function PureMemoryEditor({
     }
   }, [suggestions, content]);
 
+  // Monitor and adjust the ProseMirror sizing after rendering
+  useEffect(() => {
+    const adjustEditorSize = () => {
+      if (containerRef.current) {
+        const prosemirrorEl =
+          containerRef.current.querySelector('.ProseMirror');
+        if (prosemirrorEl) {
+          // Force editor to break words
+          prosemirrorEl.setAttribute(
+            'style',
+            'word-wrap: break-word !important; ' +
+              'white-space: pre-wrap !important; ' +
+              'overflow-wrap: break-word !important; ' +
+              'width: 100% !important; ' +
+              'overflow: visible !important;',
+          );
+        }
+      }
+    };
+
+    // Run initially and on window resize
+    adjustEditorSize();
+    window.addEventListener('resize', adjustEditorSize);
+
+    // Set up an interval to repeatedly check and fix
+    const interval = setInterval(adjustEditorSize, 1000);
+
+    return () => {
+      window.removeEventListener('resize', adjustEditorSize);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="flex items-center justify-between px-2 py-1 border-b">
@@ -510,17 +566,28 @@ function PureMemoryEditor({
         </div>
       </div>
 
+      {/* Outer wrapper with fixed height and scroll */}
       <div
-        className="relative prose dark:prose-invert flex-1 markdown-editor overflow-auto"
-        ref={containerRef}
+        style={{
+          height: 'calc(100% - 40px)',
+          maxHeight: 'calc(100% - 40px)',
+          overflow: 'auto',
+          position: 'relative',
+        }}
       >
-        {isMarkdownMode && (
-          <FloatingMenu
-            isVisible={showFloatingMenu}
-            selection={selection}
-            onFormatText={handleFormatText}
-          />
-        )}
+        {/* Inner container for editor */}
+        <div
+          className="prose dark:prose-invert markdown-editor w-full"
+          ref={containerRef}
+        >
+          {isMarkdownMode && (
+            <FloatingMenu
+              isVisible={showFloatingMenu}
+              selection={selection}
+              onFormatText={handleFormatText}
+            />
+          )}
+        </div>
       </div>
 
       <input

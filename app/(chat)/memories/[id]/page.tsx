@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowUpIcon as BackIcon } from '@/components/icons';
 import { Suspense } from 'react';
-import { MemoryEditorContainer } from '@/components/memory-editor-container';
+import { MemoryEditorPage } from './memory-editor-page';
 
 interface MemoryPageProps {
   params: Promise<{
@@ -73,13 +73,13 @@ async function MemoryContent({ id }: { id: string }) {
     }
 
     return (
-      <div className="h-full">
-        <MemoryEditorContainer
-          memoryId={id}
-          initialContent={memory.content || ''}
-          initialTitle={memory.title}
-        />
-      </div>
+      <MemoryEditorPage
+        memoryId={id}
+        initialContent={memory.content || ''}
+        initialTitle={memory.title}
+        userId={session.user.id}
+        isReadonly={false}
+      />
     );
   } catch (error) {
     console.error('Error loading memory:', error);

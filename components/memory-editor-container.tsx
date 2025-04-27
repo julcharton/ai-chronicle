@@ -170,7 +170,7 @@ export function MemoryEditorContainer({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center px-4 py-2 border-b">
+      <div className="flex justify-between items-center px-4 py-2 border-b shrink-0">
         <h1 className="text-xl font-semibold truncate">{initialTitle}</h1>
         <AutoSaveStatus
           status={saveStatus}
@@ -179,7 +179,7 @@ export function MemoryEditorContainer({
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         <MemoryEditor
           memoryId={memoryId}
           content={content}

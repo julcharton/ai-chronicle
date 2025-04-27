@@ -66,26 +66,31 @@ export function Chat({
 
   return (
     <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader
-          chatId={id}
-          selectedModelId={selectedChatModel}
-          selectedVisibilityType={selectedVisibilityType}
-          isReadonly={isReadonly}
-        />
+      <div className="flex flex-col min-w-0 h-full w-full bg-background overflow-hidden">
+        {/* Header is handled by parent components in the synced view */}
+        {id.includes('demo') ? null : (
+          <ChatHeader
+            chatId={id}
+            selectedModelId={selectedChatModel}
+            selectedVisibilityType={selectedVisibilityType}
+            isReadonly={isReadonly}
+          />
+        )}
 
-        <Messages
-          chatId={id}
-          status={status}
-          votes={votes}
-          messages={messages}
-          setMessages={setMessages}
-          reload={reload}
-          isReadonly={isReadonly}
-          isArtifactVisible={isArtifactVisible}
-        />
+        <div className="flex-1 overflow-auto">
+          <Messages
+            chatId={id}
+            status={status}
+            votes={votes}
+            messages={messages}
+            setMessages={setMessages}
+            reload={reload}
+            isReadonly={isReadonly}
+            isArtifactVisible={isArtifactVisible}
+          />
+        </div>
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <div className="flex mx-auto p-3 bg-background border-t w-full shrink-0">
           {!isReadonly && (
             <MultimodalInput
               chatId={id}
@@ -101,7 +106,7 @@ export function Chat({
               append={append}
             />
           )}
-        </form>
+        </div>
       </div>
 
       <Artifact
