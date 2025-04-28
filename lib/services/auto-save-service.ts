@@ -33,6 +33,7 @@ export class AutoSaveService {
     new Map();
   private saveTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private isProcessing = false;
+  private debug = true; // Enable debug logging
 
   constructor(config: Partial<AutoSaveConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -53,9 +54,17 @@ export class AutoSaveService {
    * @returns Promise that resolves when the save is complete
    */
   public queueSave(memoryId: string, content: string): Promise<AutoSaveResult> {
+    // Debug log
+    if (this.debug) {
+      console.log(
+        `[AutoSave] Queueing save for memory ${memoryId.substring(0, 8)}...`,
+      );
+    }
+
     // Validate the content
     const validContent = validateMemoryContent(content);
     if (!validContent) {
+      console.error('[AutoSave] Invalid content, not saving');
       return Promise.resolve({ success: false, error: 'Invalid content' });
     }
 
@@ -92,14 +101,24 @@ export class AutoSaveService {
    * @returns Promise that resolves with the save result
    */
   private async processSaveQueue(memoryId: string): Promise<AutoSaveResult> {
+    if (this.debug) {
+      console.log(
+        `[AutoSave] Processing save queue for memory ${memoryId.substring(0, 8)}`,
+      );
+    }
+
     if (this.isProcessing) {
       // Another save is in progress, wait and then check again
+      if (this.debug) {
+        console.log('[AutoSave] Another save in progress, waiting...');
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
       return this.processSaveQueue(memoryId);
     }
 
     const queueItem = this.saveQueue.get(memoryId);
     if (!queueItem) {
+      console.warn('[AutoSave] No content to save in queue');
       return { success: false, error: 'No content to save' };
     }
 
@@ -113,6 +132,11 @@ export class AutoSaveService {
       // Extract metadata from content
       const metadata = extractMetadataFromContent(queueItem.content);
 
+      if (this.debug) {
+        console.log('[AutoSave] Extracted metadata:', metadata);
+        console.log('[AutoSave] Calling updateMemoryAction...');
+      }
+
       // Update memory on the server
       const result = await updateMemoryAction({
         id: memoryId,
@@ -120,9 +144,19 @@ export class AutoSaveService {
         metadata,
       });
 
+      if (this.debug) {
+        console.log('[AutoSave] updateMemoryAction result:', result);
+      }
+
       if (result.success) {
         // Save successful
         const timestamp = new Date();
+
+        if (this.debug) {
+          console.log(
+            `[AutoSave] Save successful at ${timestamp.toISOString()}`,
+          );
+        }
 
         // Update status to indicate saved
         if (this.config.onStatusChange) {
@@ -133,8 +167,16 @@ export class AutoSaveService {
         return { success: true, timestamp };
       } else {
         // Handle retry logic for failed saves
+        console.error('[AutoSave] Save failed:', result.error);
+
         if (queueItem.retryCount < this.config.maxRetries) {
           // Re-queue with incremented retry count
+          if (this.debug) {
+            console.log(
+              `[AutoSave] Retrying (${queueItem.retryCount + 1}/${this.config.maxRetries})`,
+            );
+          }
+
           this.saveQueue.set(memoryId, {
             content: queueItem.content,
             retryCount: queueItem.retryCount + 1,
@@ -154,6 +196,8 @@ export class AutoSaveService {
           };
         } else {
           // Update status to indicate error
+          console.error('[AutoSave] Failed after max retries');
+
           if (this.config.onStatusChange) {
             this.config.onStatusChange('error');
           }
@@ -167,7 +211,7 @@ export class AutoSaveService {
       }
     } catch (error) {
       // Handle unexpected errors
-      console.error('Error in auto-save service:', error);
+      console.error('[AutoSave] Error in auto-save service:', error);
 
       // Update status to indicate error
       if (this.config.onStatusChange) {
@@ -191,6 +235,10 @@ export class AutoSaveService {
    * @returns Promise that resolves with the save result
    */
   public forceSave(memoryId: string): Promise<AutoSaveResult> {
+    if (this.debug) {
+      console.log(`[AutoSave] Force saving memory ${memoryId.substring(0, 8)}`);
+    }
+
     // Clear any existing timeout
     if (this.saveTimeouts.has(memoryId)) {
       clearTimeout(this.saveTimeouts.get(memoryId));
@@ -203,6 +251,9 @@ export class AutoSaveService {
     }
 
     // Nothing to save
+    if (this.debug) {
+      console.log('[AutoSave] Nothing to force save');
+    }
     return Promise.resolve({ success: true });
   }
 
@@ -211,6 +262,12 @@ export class AutoSaveService {
    * @param memoryId ID of the memory to cancel saves for
    */
   public cancelSave(memoryId: string): void {
+    if (this.debug) {
+      console.log(
+        `[AutoSave] Cancelling save for memory ${memoryId.substring(0, 8)}`,
+      );
+    }
+
     // Clear any existing timeout
     if (this.saveTimeouts.has(memoryId)) {
       clearTimeout(this.saveTimeouts.get(memoryId));
@@ -227,7 +284,75 @@ export class AutoSaveService {
    * @returns True if there are pending saves, false otherwise
    */
   public hasPendingSaves(memoryId: string): boolean {
-    return this.saveQueue.has(memoryId) || this.saveTimeouts.has(memoryId);
+    const hasPending =
+      this.saveQueue.has(memoryId) || this.saveTimeouts.has(memoryId);
+    if (this.debug) {
+      console.log(
+        `[AutoSave] Has pending saves for ${memoryId.substring(0, 8)}: ${hasPending}`,
+      );
+    }
+    return hasPending;
+  }
+
+  /**
+   * Directly save content without using the queue system
+   * Use this as a fallback when the queue system isn't working
+   * @param params Parameters for saving memory
+   * @returns Promise that resolves with the save result
+   */
+  public async save(params: {
+    memoryId: string;
+    content: string;
+  }): Promise<AutoSaveResult> {
+    if (this.debug) {
+      console.log(
+        `[AutoSave] Direct save for memory ${params.memoryId.substring(0, 8)}`,
+      );
+    }
+
+    try {
+      const metadata = extractMetadataFromContent(params.content);
+
+      // Call the server action directly
+      const result = await updateMemoryAction({
+        id: params.memoryId,
+        content: params.content,
+        metadata,
+      });
+
+      if (this.debug) {
+        console.log('[AutoSave] Direct save result:', result);
+      }
+
+      if (result.success) {
+        if (this.config.onStatusChange) {
+          this.config.onStatusChange('saved');
+        }
+        return { success: true, timestamp: new Date() };
+      } else {
+        if (this.config.onStatusChange) {
+          this.config.onStatusChange('error');
+        }
+        return {
+          success: false,
+          error: result.error || 'Unknown error during direct save',
+        };
+      }
+    } catch (error) {
+      console.error('[AutoSave] Error during direct save:', error);
+
+      if (this.config.onStatusChange) {
+        this.config.onStatusChange('error');
+      }
+
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unexpected error during direct save',
+      };
+    }
   }
 }
 

@@ -13,7 +13,6 @@ const updateMemorySchema = z.object({
     .optional(),
   content: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  isPublic: z.boolean().optional(),
 });
 
 // DTO for response
@@ -24,7 +23,6 @@ type MemoryResponseDTO = {
   createdAt: string;
   updatedAt: string;
   tags?: string[];
-  isPublic?: boolean;
 };
 
 /**
@@ -67,7 +65,6 @@ export async function GET(
       createdAt: new Date(memory.createdAt).toISOString(),
       updatedAt: new Date(memory.updatedAt).toISOString(),
       tags: memory.metadata?.tags,
-      isPublic: memory.metadata?.isPublic,
     };
 
     return NextResponse.json(response);
@@ -119,7 +116,7 @@ export async function PUT(
       );
     }
 
-    const { title, content, tags, isPublic } = validationResult.data;
+    const { title, content, tags } = validationResult.data;
 
     // Get memory repository
     const memoryRepository = getMemoryRepository();
@@ -145,10 +142,6 @@ export async function PUT(
       updatedMetadata.tags = tags;
     }
 
-    if (isPublic !== undefined) {
-      updatedMetadata.isPublic = isPublic;
-    }
-
     // Update the memory
     const updateData = {
       title: title !== undefined ? title : undefined,
@@ -166,7 +159,6 @@ export async function PUT(
       createdAt: new Date(updatedMemory.createdAt).toISOString(),
       updatedAt: new Date(updatedMemory.updatedAt).toISOString(),
       tags: updatedMemory.metadata?.tags,
-      isPublic: updatedMemory.metadata?.isPublic,
     };
 
     return NextResponse.json(response);

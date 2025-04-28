@@ -11,6 +11,12 @@ interface MemoryEditorPageProps {
   initialTitle: string;
   userId: string;
   isReadonly?: boolean;
+  initialMetadata?: {
+    tags?: string[];
+    summary?: string;
+    source?: string;
+    aiGenerated?: boolean;
+  };
 }
 
 export function MemoryEditorPage({
@@ -19,6 +25,7 @@ export function MemoryEditorPage({
   initialTitle,
   userId,
   isReadonly = false,
+  initialMetadata = {},
 }: MemoryEditorPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [chatId, setChatId] = useState<string>('');

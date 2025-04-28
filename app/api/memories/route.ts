@@ -12,7 +12,6 @@ const createMemorySchema = z.object({
     .max(150, 'Title cannot exceed 150 characters'),
   content: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  isPublic: z.boolean().optional().default(false),
 });
 
 // DTOs for responses
@@ -23,7 +22,6 @@ type MemoryResponseDTO = {
   createdAt: string;
   updatedAt: string;
   tags?: string[];
-  isPublic?: boolean;
 };
 
 /**
@@ -39,21 +37,21 @@ export async function GET(request: NextRequest) {
 
     // Extract query parameters
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const page = Number.parseInt(searchParams.get('page') || '1', 10);
+    const limit = Number.parseInt(searchParams.get('limit') || '20', 10);
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const order = searchParams.get('order') || 'desc';
     const tag = searchParams.get('tag');
 
     // Validate pagination parameters
-    if (isNaN(page) || page < 1) {
+    if (Number.isNaN(page) || page < 1) {
       return NextResponse.json(
         { error: 'Invalid page parameter' },
         { status: 400 },
       );
     }
 
-    if (isNaN(limit) || limit < 1 || limit > 100) {
+    if (Number.isNaN(limit) || limit < 1 || limit > 100) {
       return NextResponse.json(
         { error: 'Invalid limit parameter' },
         { status: 400 },
@@ -73,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Filter by tag if provided
     if (tag) {
       filteredMemories = filteredMemories.filter((memory) => {
-        const tags = (memory.metadata as any)?.tags || [];
+        const tags = memory.metadata?.tags || [];
         return tags.includes(tag);
       });
     }
@@ -110,8 +108,7 @@ export async function GET(request: NextRequest) {
           content: memory.content || '',
           createdAt: new Date(memory.createdAt).toISOString(),
           updatedAt: new Date(memory.updatedAt).toISOString(),
-          tags: (memory.metadata as any)?.tags,
-          isPublic: (memory.metadata as any)?.isPublic,
+          tags: memory.metadata?.tags,
         }),
       ),
       pagination: {
@@ -144,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate the request body
-    let body;
+    let body: unknown;
     try {
       body = await request.json();
     } catch (error) {
@@ -166,7 +163,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, content, tags, isPublic } = validationResult.data;
+    const { title, content, tags } = validationResult.data;
 
     // Get memory repository
     const memoryRepository = getMemoryRepository();
@@ -179,7 +176,6 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       metadata: {
         tags,
-        isPublic,
         aiGenerated: false,
       },
     });
@@ -192,7 +188,6 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(memory.createdAt).toISOString(),
       updatedAt: new Date(memory.updatedAt).toISOString(),
       tags: (memory.metadata as any)?.tags,
-      isPublic: (memory.metadata as any)?.isPublic,
     };
 
     return NextResponse.json(response, { status: 201 });

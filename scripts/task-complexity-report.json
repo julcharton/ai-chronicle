@@ -52,9 +52,9 @@
       "taskTitle": "Integrate AI Guidance System",
       "complexityScore": 9,
       "recommendedSubtasks": 7,
-      "expansionPrompt": "Divide the AI Guidance System integration into subtasks covering GPT-4 Turbo API integration, prompt template development, contextual question generation, content synchronization, suggestion endpoint implementation, visual indicators, and error handling",
+      "expansionPrompt": "Divide the AI Guidance System integration into subtasks covering Vercel AI integration, prompt template development, contextual question generation, content synchronization, suggestion endpoint implementation, visual indicators, and error handling",
       "reasoning": "This is one of the most complex tasks, involving AI integration, prompt engineering, and bidirectional content synchronization. The need to create contextual questions and ensure AI doesn't fabricate details adds significant complexity."
-    },
+    }
     {
       "taskId": 7,
       "taskTitle": "Implement Image Upload and Integration",

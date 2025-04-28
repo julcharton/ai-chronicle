@@ -84,12 +84,6 @@ export function SyncedEditor({
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden relative">
-      {isSyncEnabled && (
-        <div className="absolute right-2 top-2 z-10 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary">
-          Sync Active
-        </div>
-      )}
-
       <div ref={editorScrollRef} className="flex-1 overflow-auto">
         <MemoryEditorContainer
           memoryId={memoryId}

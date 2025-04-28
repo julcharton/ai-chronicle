@@ -3,15 +3,14 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { PanelRightOpenIcon, PanelLeftOpenIcon } from 'lucide-react';
 
 interface TwoColumnLayoutProps {
+  leftColumnTitle?: React.ReactNode;
+  rightColumnTitle?: React.ReactNode;
   leftContent: React.ReactNode;
   rightContent: React.ReactNode;
-  className?: string;
-  leftColumnClassName?: string;
-  rightColumnClassName?: string;
-  leftColumnTitle?: string;
-  rightColumnTitle?: string;
+  defaultRightOpen?: boolean;
 }
 
 /**
@@ -21,72 +20,72 @@ interface TwoColumnLayoutProps {
  * On mobile, the layout stacks with toggle controls to switch between views
  */
 export function TwoColumnLayout({
+  leftColumnTitle,
+  rightColumnTitle,
   leftContent,
   rightContent,
-  className,
-  leftColumnClassName,
-  rightColumnClassName,
-  leftColumnTitle = 'Editor',
-  rightColumnTitle = 'Chat',
+  defaultRightOpen = false,
 }: TwoColumnLayoutProps) {
-  // State to track which view is active on mobile
-  const [activeView, setActiveView] = useState<'left' | 'right'>('left');
+  const [showRightColumn, setShowRightColumn] = useState(defaultRightOpen);
+
+  // Toggle the visible column in mobile view
+  const toggleRightColumn = () => {
+    setShowRightColumn(!showRightColumn);
+  };
 
   return (
-    <div
-      className={cn(
-        'grid grid-cols-1 lg:grid-cols-5 h-full w-full overflow-hidden',
-        className,
-      )}
-    >
-      {/* Mobile View Toggle Controls - Only visible on mobile */}
-      <div className="flex lg:hidden border-b p-2 mb-0 sticky top-0 bg-background z-10 shrink-0">
-        <div className="flex w-full rounded-md overflow-hidden">
-          <Button
-            variant={activeView === 'left' ? 'default' : 'outline'}
-            className={cn(
-              'flex-1 rounded-none',
-              activeView === 'left' ? 'shadow-sm' : 'text-muted-foreground',
-            )}
-            onClick={() => setActiveView('left')}
-          >
-            {leftColumnTitle}
-          </Button>
-          <Button
-            variant={activeView === 'right' ? 'default' : 'outline'}
-            className={cn(
-              'flex-1 rounded-none',
-              activeView === 'right' ? 'shadow-sm' : 'text-muted-foreground',
-            )}
-            onClick={() => setActiveView('right')}
-          >
-            {rightColumnTitle}
-          </Button>
+    <div className="h-full flex flex-col">
+      {/* Mobile Header/Toggle */}
+      <div className="md:hidden border-b flex items-center justify-between p-2">
+        {(leftColumnTitle || rightColumnTitle) && (
+          <h3 className="font-medium text-sm">
+            {showRightColumn ? rightColumnTitle : leftColumnTitle}
+          </h3>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleRightColumn}
+          title={
+            showRightColumn ? 'Switch to Editor View' : 'Switch to Chat View'
+          }
+          className={!leftColumnTitle && !rightColumnTitle ? 'ml-auto' : ''}
+        >
+          {showRightColumn ? <PanelLeftOpenIcon /> : <PanelRightOpenIcon />}
+        </Button>
+      </div>
+
+      {/* Desktop & Mobile Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Column */}
+        <div
+          className={cn(
+            'flex-1 flex flex-col h-full overflow-hidden',
+            showRightColumn ? 'hidden md:flex md:w-3/5' : 'w-full',
+          )}
+        >
+          {leftColumnTitle && (
+            <div className="hidden md:block border-b p-2">
+              <h3 className="font-medium text-sm">{leftColumnTitle}</h3>
+            </div>
+          )}
+          <div className="flex-1 overflow-auto">{leftContent}</div>
         </div>
-      </div>
 
-      {/* Left Column - 60% width (3/5 columns) on desktop, conditional on mobile */}
-      <div
-        className={cn(
-          'col-span-1 lg:col-span-3 border-b lg:border-b-0 lg:border-r h-full overflow-hidden',
-          // On mobile: show when active, hide when inactive
-          activeView === 'left' ? 'block' : 'hidden lg:block',
-          leftColumnClassName,
-        )}
-      >
-        {leftContent}
-      </div>
-
-      {/* Right Column - 40% width (2/5 columns) on desktop, conditional on mobile */}
-      <div
-        className={cn(
-          'col-span-1 lg:col-span-2 h-full overflow-hidden',
-          // On mobile: show when active, hide when inactive
-          activeView === 'right' ? 'block' : 'hidden lg:block',
-          rightColumnClassName,
-        )}
-      >
-        {rightContent}
+        {/* Right Column */}
+        <div
+          className={cn(
+            'flex-1 flex flex-col h-full overflow-hidden border-l',
+            !showRightColumn ? 'hidden md:flex md:w-2/5' : 'w-full',
+          )}
+        >
+          {rightColumnTitle && (
+            <div className="hidden md:block border-b p-2">
+              <h3 className="font-medium text-sm">{rightColumnTitle}</h3>
+            </div>
+          )}
+          <div className="flex-1 overflow-auto">{rightContent}</div>
+        </div>
       </div>
     </div>
   );

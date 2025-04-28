@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowUpIcon as BackIcon } from '@/components/icons';
 import { Suspense } from 'react';
 import { MemoryEditorPage } from './memory-editor-page';
+import type { MemoryMetadata } from '@/lib/types';
 
 interface MemoryPageProps {
   params: Promise<{
@@ -18,14 +19,9 @@ export default async function MemoryPage({ params }: MemoryPageProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-4 py-2 border-b">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/memories">
-            <BackIcon />
-            Back to Memories
-          </Link>
-        </Button>
-      </div>
+      <Suspense fallback={<HeaderLoading />}>
+        <MemoryHeader id={id} />
+      </Suspense>
 
       <div className="flex-1 overflow-auto">
         <Suspense fallback={<MemoryLoading />}>
@@ -36,15 +32,82 @@ export default async function MemoryPage({ params }: MemoryPageProps) {
   );
 }
 
+// Loading placeholder for the header
+function HeaderLoading() {
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b">
+      <div className="animate-pulse h-9 w-36 bg-muted rounded" />
+      <div className="animate-pulse h-9 w-20 bg-muted rounded" />
+    </div>
+  );
+}
+
+// Memory header with visibility toggle
+async function MemoryHeader({ id }: { id: string }) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/memories">
+            <BackIcon />
+            Back to Memories
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  try {
+    const memoryRepository = getMemoryRepository();
+    const memory = await memoryRepository.findById(id);
+
+    if (!memory || memory.userId !== session.user.id) {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 border-b">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/memories">
+              <BackIcon />
+              Back to Memories
+            </Link>
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center px-4 py-2 border-b">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/memories">
+            <BackIcon />
+            Back to Memories
+          </Link>
+        </Button>
+      </div>
+    );
+  } catch (error) {
+    console.error('Error loading memory header:', error);
+    return (
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/memories">
+            <BackIcon />
+            Back to Memories
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+}
+
+// Loading placeholder for memory content
 function MemoryLoading() {
   return (
-    <div className="p-6 animate-pulse">
-      <div className="h-8 w-1/2 bg-muted rounded mb-6" />
-      <div className="h-4 w-32 bg-muted rounded mb-8" />
-      <div className="space-y-3">
-        <div className="h-4 w-full bg-muted rounded" />
-        <div className="h-4 w-full bg-muted rounded" />
-        <div className="h-4 w-2/3 bg-muted rounded" />
+    <div className="flex items-center justify-center h-full p-6">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-6 w-48 bg-muted rounded mb-4" />
+        <div className="h-4 w-64 bg-muted rounded" />
       </div>
     </div>
   );
@@ -72,6 +135,8 @@ async function MemoryContent({ id }: { id: string }) {
       notFound();
     }
 
+    const initialMetadata = (memory.metadata as MemoryMetadata) || {};
+
     return (
       <MemoryEditorPage
         memoryId={id}
@@ -79,6 +144,7 @@ async function MemoryContent({ id }: { id: string }) {
         initialTitle={memory.title}
         userId={session.user.id}
         isReadonly={false}
+        initialMetadata={initialMetadata}
       />
     );
   } catch (error) {

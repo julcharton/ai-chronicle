@@ -9,7 +9,6 @@ export interface Memory {
   updatedAt: string;
   userId: string;
   tags?: string[];
-  isPublic?: boolean;
   summary?: string;
   source?: string;
   aiGenerated?: boolean;
@@ -20,7 +19,6 @@ export interface Memory {
  */
 export interface MemoryMetadata {
   tags?: string[];
-  isPublic?: boolean;
   summary?: string;
   source?: string;
   aiGenerated?: boolean;

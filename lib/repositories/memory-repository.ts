@@ -79,35 +79,61 @@ export class MemoryRepository implements BaseRepository<Memory, string> {
    * @returns Updated memory
    */
   async update(id: string, data: Partial<Memory>): Promise<Memory> {
-    return await dbClient.executeWithRetry(async () => {
-      const updateData: any = {
-        updatedAt: new Date(),
-      };
+    console.log(`[MemoryRepository] Updating memory ${id.substring(0, 8)}`);
 
-      if (data.title !== undefined) {
-        updateData.title = data.title;
-      }
+    try {
+      return await dbClient.executeWithRetry(async () => {
+        const updateData: any = {
+          updatedAt: new Date(),
+        };
 
-      if (data.content !== undefined) {
-        updateData.content = data.content;
-      }
+        if (data.title !== undefined) {
+          updateData.title = data.title;
+          console.log(`[MemoryRepository] Updating title: ${data.title}`);
+        }
 
-      if (data.metadata !== undefined) {
-        updateData.metadata = data.metadata;
-      }
+        if (data.content !== undefined) {
+          updateData.content = data.content;
+          console.log(
+            `[MemoryRepository] Updating content of length: ${data.content?.length || 0}`,
+          );
+        }
 
-      const [updatedMemory] = await dbClient.db
-        .update(memory)
-        .set(updateData)
-        .where(eq(memory.id, id))
-        .returning();
+        if (data.metadata !== undefined) {
+          updateData.metadata = data.metadata;
+          console.log(
+            `[MemoryRepository] Updating metadata: ${JSON.stringify(data.metadata)}`,
+          );
+        }
 
-      if (!updatedMemory) {
-        throw new Error(`Memory with ID ${id} not found`);
-      }
+        console.log(
+          `[MemoryRepository] Executing SQL update for memory ${id.substring(0, 8)}`,
+        );
 
-      return updatedMemory;
-    });
+        const [updatedMemory] = await dbClient.db
+          .update(memory)
+          .set(updateData)
+          .where(eq(memory.id, id))
+          .returning();
+
+        if (!updatedMemory) {
+          const error = `Memory with ID ${id} not found`;
+          console.error(`[MemoryRepository] ${error}`);
+          throw new Error(error);
+        }
+
+        console.log(
+          `[MemoryRepository] Memory ${id.substring(0, 8)} updated successfully`,
+        );
+        return updatedMemory;
+      });
+    } catch (error) {
+      console.error(
+        `[MemoryRepository] Error updating memory ${id.substring(0, 8)}:`,
+        error,
+      );
+      throw error;
+    }
   }
 
   /**

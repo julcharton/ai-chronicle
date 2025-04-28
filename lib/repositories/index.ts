@@ -1,5 +1,6 @@
 import { MemoryRepository } from './memory-repository';
 import { ChatRepository } from './chat-repository';
+import { MessageRepository } from './message-repository';
 
 // Export repository types for use in other files
 export type { BaseRepository } from './base-repository';
@@ -12,10 +13,12 @@ class RepositoryFactory {
   private static instance: RepositoryFactory;
   private memoryRepository: MemoryRepository;
   private chatRepository: ChatRepository;
+  private messageRepository: MessageRepository;
 
   private constructor() {
     this.memoryRepository = new MemoryRepository();
     this.chatRepository = new ChatRepository();
+    this.messageRepository = new MessageRepository();
   }
 
   /**
@@ -42,6 +45,13 @@ class RepositoryFactory {
   public getChatRepository(): ChatRepository {
     return this.chatRepository;
   }
+
+  /**
+   * Get the message repository
+   */
+  public getMessageRepository(): MessageRepository {
+    return this.messageRepository;
+  }
 }
 
 // Export a function to get the repository factory
@@ -56,4 +66,8 @@ export function getMemoryRepository(): MemoryRepository {
 
 export function getChatRepository(): ChatRepository {
   return getRepositoryFactory().getChatRepository();
+}
+
+export function getMessageRepository(): MessageRepository {
+  return getRepositoryFactory().getMessageRepository();
 }

@@ -33,8 +33,6 @@ export function SyncedMemoryContainer({
     <div className="h-full w-full overflow-hidden">
       <MemorySyncProvider>
         <TwoColumnLayout
-          leftColumnTitle="Memory Editor"
-          rightColumnTitle="Memory Chat"
           leftContent={
             <SyncedEditor
               memoryId={memoryId}

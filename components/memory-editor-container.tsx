@@ -1,13 +1,7 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
-import { MemoryEditor } from './memory-editor';
-import {
-  createMemoryEditorHandler,
-  validateMemoryContent,
-} from '@/lib/editor/memory-editor-sync';
-import { usePathname } from 'next/navigation';
-import type { Suggestion } from '@/lib/db/schema';
+import { useState, useEffect, useCallback } from 'react';
+import { MemoryEditor } from '@/components/memory-editor';
 import {
   AutoSaveStatus,
   type AutoSaveStatus as AutoSaveStatusType,
@@ -18,165 +12,175 @@ export type MemoryEditorContainerProps = {
   memoryId: string;
   initialContent: string;
   initialTitle: string;
+  isReadonly?: boolean;
 };
 
+/**
+ * Container component for the memory editor with auto-save functionality
+ */
 export function MemoryEditorContainer({
   memoryId,
   initialContent,
   initialTitle,
+  isReadonly = false,
 }: MemoryEditorContainerProps) {
   const [content, setContent] = useState(initialContent);
   const [saveStatus, setSaveStatus] = useState<AutoSaveStatusType>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | undefined>(undefined);
-  const pathname = usePathname();
-
-  // Track pending updates to handle navigation and window close events
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 5000; // 5 seconds between retries
 
-  // Reference to track if we're currently updating from remote source
-  const isUpdatingRef = useRef(false);
+  // Function to handle content changes with auto-save
+  const handleContentChange = async (
+    memoryId: string,
+    newContent: string,
+    debounce = true,
+  ) => {
+    setContent(newContent);
+    setHasPendingChanges(true);
 
-  // Save timeout for delayed "saved" status transitions
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Start saving immediately or with debounce
+    if (!debounce) {
+      await autoSaveContent(memoryId, newContent);
+    }
+  };
 
-  // Configure auto-save status change handler
-  useEffect(() => {
-    const handleStatusChange = (
-      status: 'idle' | 'saving' | 'saved' | 'error',
-    ) => {
-      setSaveStatus(status);
+  // Auto-save function
+  const autoSaveContent = async (memoryId: string, content: string) => {
+    try {
+      setSaveStatus('saving');
+      setSaveError(undefined);
 
-      // For saved status, set a timeout to change back to idle after 3 seconds
-      if (status === 'saved') {
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-
-        saveTimeoutRef.current = setTimeout(() => {
-          setSaveStatus('idle');
-        }, 3000);
-      }
-    };
-
-    autoSaveService.updateConfig({
-      onStatusChange: handleStatusChange,
-    });
-
-    return () => {
-      // Clean up
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Auto-save handler for memory content
-  const handleContentChange = useCallback(
-    async (id: string, updatedContent: string, debounced: boolean) => {
-      // Prevent saving if we're updating from a remote source
-      if (isUpdatingRef.current) return;
-
-      const validContent = validateMemoryContent(updatedContent);
+      // Validate content
+      const validContent = content.trim();
 
       // Skip saving if content is empty or unchanged
-      if (!validContent || validContent === content) return;
+      if (!validContent) {
+        console.log('Content is empty, skipping save');
+        setSaveStatus('idle');
+        return;
+      }
 
       // Update local state
       setContent(validContent);
-      setHasPendingChanges(true);
 
-      if (debounced) {
-        // Clear any existing timeout for status transitions
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
-        }
+      // Save to server
+      const result = await autoSaveService.save({
+        memoryId,
+        content: validContent,
+      });
 
-        try {
-          // Use auto-save service to save the content
-          const result = await autoSaveService.queueSave(id, validContent);
+      if (result.success) {
+        // Update status on success
+        console.log('Save successful', result);
+        setSaveStatus('saved');
+        setLastSavedAt(new Date());
+        setHasPendingChanges(false);
+        setRetryCount(0); // Reset retry count on success
+      } else {
+        // Handle error
+        console.error('Save failed', result.error);
+        setSaveStatus('error');
+        setSaveError(result.error || 'Unknown error occurred');
 
-          if (result.success && result.timestamp) {
-            setLastSavedAt(result.timestamp);
-            setHasPendingChanges(false);
-          } else if (result.error) {
-            setSaveError(result.error);
-          }
-        } catch (error) {
-          console.error('Error in auto-save:', error);
-          setSaveError('Unexpected error during save');
+        // Implement retry logic
+        if (retryCount < MAX_RETRIES) {
+          console.log(
+            `Retry ${retryCount + 1}/${MAX_RETRIES} after ${RETRY_DELAY}ms`,
+          );
+          setTimeout(() => {
+            setRetryCount((prevCount) => prevCount + 1);
+            autoSaveContent(memoryId, content);
+          }, RETRY_DELAY);
         }
       }
-    },
-    [content],
-  );
+    } catch (error) {
+      console.error('Failed to auto-save memory:', error);
+      setSaveStatus('error');
+      setSaveError('Failed to save changes');
 
-  // For image upload - would connect to a real image upload service
-  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
-    // This would be replaced with actual image upload functionality
-    // For now, return a data URL as placeholder
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // In a real implementation, this would return the URL from the server
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
-  }, []);
+      // Implement retry logic for exceptions too
+      if (retryCount < MAX_RETRIES) {
+        console.log(
+          `Retry ${retryCount + 1}/${MAX_RETRIES} after error, waiting ${RETRY_DELAY}ms`,
+        );
+        setTimeout(() => {
+          setRetryCount((prevCount) => prevCount + 1);
+          autoSaveContent(memoryId, content);
+        }, RETRY_DELAY);
+      }
+    }
+  };
 
-  // Get the memory editor handler with the content change callback
-  const { handleTransaction } = createMemoryEditorHandler({
-    memoryId,
-    onContentChange: handleContentChange,
-    debounceDelay: 1000,
-    debug: false,
-  });
+  // Manual save handler when auto-save fails
+  const handleManualSave = useCallback(async () => {
+    if (!hasPendingChanges) return;
 
-  // Function to handle AI assistance request
-  const handleAIAssistance = useCallback(() => {
-    console.log(
-      'AI Assistance requested - will be implemented in a future update.',
-    );
-  }, []);
+    console.log('Attempting manual save...');
+    await autoSaveContent(memoryId, content);
+  }, [content, hasPendingChanges, memoryId]);
 
-  // Force save any pending changes when user tries to navigate away
+  // Handle image uploads
+  // We're using a workaround for the type mismatch by returning a string URL
+  // In a real implementation, this would be synchronized with the actual MemoryEditor component
+  const handleImageUpload = async (file: File): Promise<string> => {
+    // Placeholder for image upload
+    console.log('Image upload requested:', file.name);
+    return URL.createObjectURL(file);
+  };
+
+  // Handle AI assistance requests
+  // Adjusting the function signature to match what the MemoryEditor expects
+  const handleAIAssistance = () => {
+    // In a real implementation, this would handle AI assistance requests
+    console.log('AI assistance requested');
+  };
+
+  // Set up auto-save interval
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (!hasPendingChanges) return;
+
+    const autoSaveInterval = setInterval(async () => {
       if (hasPendingChanges) {
-        // Save pending changes
-        autoSaveService.forceSave(memoryId);
-
-        // Standard approach to show browser dialog when there are unsaved changes
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
+        await autoSaveContent(memoryId, content);
       }
-    };
-
-    // Handle navigation events
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    }, 3000); // Auto-save every 3 seconds if there are changes
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearInterval(autoSaveInterval);
+    };
+  }, [hasPendingChanges, memoryId, content]);
 
-      // If component unmounts with pending changes, try to save them
-      if (hasPendingChanges) {
-        autoSaveService.forceSave(memoryId);
+  // Add a key press handler for ctrl+s/cmd+s manual save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleManualSave();
       }
     };
-  }, [hasPendingChanges, memoryId]);
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleManualSave]);
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center px-4 py-2 border-b shrink-0">
         <h1 className="text-xl font-semibold truncate">{initialTitle}</h1>
-        <AutoSaveStatus
-          status={saveStatus}
-          lastSavedAt={lastSavedAt}
-          error={saveError}
-        />
+        <div className="flex items-center space-x-3">
+          <AutoSaveStatus
+            status={saveStatus}
+            lastSavedAt={lastSavedAt}
+            error={saveError}
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">

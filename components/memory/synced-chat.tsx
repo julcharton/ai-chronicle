@@ -105,24 +105,9 @@ export function SyncedChat({
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
-      {isSyncEnabledGlobal === undefined && (
-        <div className="flex items-center justify-between p-2 border-b shrink-0">
-          <h2 className="text-lg font-medium">Memory Chat</h2>
-          <div className="flex items-center gap-2">
-            <Label
-              htmlFor="sync-switch"
-              className="text-xs text-muted-foreground mr-1"
-            >
-              Sync Scroll
-            </Label>
-            <Switch
-              id="sync-switch"
-              checked={isSyncEnabled}
-              onCheckedChange={toggleSync}
-            />
-          </div>
-        </div>
-      )}
+      <div className="flex items-center justify-between p-2 border-b shrink-0">
+        <h2 className="text-lg font-medium">Memory Chat</h2>
+      </div>
 
       <div ref={chatScrollRef} className="flex-1 overflow-auto relative">
         <MemoryChat
@@ -130,20 +115,6 @@ export function SyncedChat({
           visibility={visibility}
           isReadonly={isReadonly}
         />
-
-        {/* Highlight effect for the currently synced message */}
-        {isSyncEnabled && highlightedChatId && (
-          <div
-            data-highlighted-id={highlightedChatId}
-            className="pointer-events-none absolute inset-0 z-10"
-          >
-            {/* The actual highlighting would be applied via CSS that targets 
-                the message with the matching ID */}
-            <div className="absolute top-2 left-2 bg-primary/10 rounded-md px-2 py-1 text-xs text-primary">
-              Synced Content
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
