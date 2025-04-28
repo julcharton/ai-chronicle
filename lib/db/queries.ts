@@ -243,12 +243,14 @@ export async function saveDocument({
   kind,
   content,
   userId,
+  chatId,
 }: {
   id: string;
   title: string;
   kind: ArtifactKind;
   content: string;
   userId: string;
+  chatId?: string;
 }) {
   try {
     return await db
@@ -260,6 +262,7 @@ export async function saveDocument({
         content,
         userId,
         createdAt: new Date(),
+        chatId,
       })
       .returning();
   } catch (error) {
@@ -416,6 +419,19 @@ export async function updateChatVisiblityById({
     return await db.update(chat).set({ visibility }).where(eq(chat.id, chatId));
   } catch (error) {
     console.error('Failed to update chat visibility in database');
+    throw error;
+  }
+}
+
+export async function getDocumentsByChatId({ id }: { id: string }) {
+  try {
+    return await db
+      .select()
+      .from(document)
+      .where(eq(document.chatId, id))
+      .orderBy(desc(document.createdAt));
+  } catch (error) {
+    console.error('Failed to get documents by chat id from database');
     throw error;
   }
 }

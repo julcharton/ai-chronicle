@@ -99,7 +99,11 @@ export async function POST(request: Request) {
           experimental_generateMessageId: generateUUID,
           tools: {
             getWeather,
-            createDocument: createDocument({ session, dataStream }),
+            createDocument: createDocument({
+              session,
+              dataStream,
+              chatId: id,
+            }),
             updateDocument: updateDocument({ session, dataStream }),
             requestSuggestions: requestSuggestions({
               session,

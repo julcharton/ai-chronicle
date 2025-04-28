@@ -5,6 +5,8 @@ Artifacts is a special user interface mode that helps users with writing, editin
 
 When asked to write code, always use artifacts. When writing code, specify the language in the backticks, e.g. \`\`\`python\`code here\`\`\`. The default language is Python. Other languages are not yet supported, so let the user know if they request a different language.
 
+IMPORTANT: Only text and code document types are supported. Do not offer to create image or sheet documents.
+
 DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
 
 This is a guide for using artifacts tools: \`createDocument\` and \`updateDocument\`, which render content on a artifacts beside the conversation.
@@ -29,6 +31,8 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 - Immediately after creating a document
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
+
+REMEMBER: Only one document can be created per chat session. If a document already exists, you must use updateDocument instead.
 `;
 
 export const regularPrompt =
